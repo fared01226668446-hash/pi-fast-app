@@ -1,12 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
+    <title>تطبيق أحمد على باي</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
-<body>
-    <h1 style="text-align:center;">تطبيق أحمد للتجارة</h1>
-    <p style="text-align:center;">اربط شحنة أرامكس بمحفظتك</p>
-    <button style="width:100%; padding:20px; background:#673ab7; color:white; border-radius:10px;" onclick="Pi.authenticate(['payments'], function(a){alert('تم الربط بنجاح يا أحمد!');})">ربط المحفظة والدفع</button>
+<body style="text-align: center; font-family: sans-serif; padding-top: 50px;">
+    <h1>تطبيقي الأول في شبكة باي</h1>
+    <button id="btn" style="padding: 15px; background: #673ab7; color: white; border: none; border-radius: 10px;">
+        تسجيل الدخول باستخدام Pi
+    </button>
+    <script>
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: true });
+        document.getElementById('btn').onclick = function() {
+            Pi.authenticate(['username', 'payments'])
+              .then(function(auth) {
+                alert("مرحباً بك يا " + auth.user.username);
+              })
+              .catch(function(error) {
+                console.error(error);
+              });
+        };
+    </script>
 </body>
 </html>
