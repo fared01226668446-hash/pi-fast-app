@@ -11,28 +11,30 @@
     <div id="info" style="margin:20px; padding:15px; background:#fff; border-radius:10px;">
         جاري فحص الاتصال...
     </div>
-    <button onclick="login()" style="padding:15px 30px; background:#673ab7; color:#white; border:none; border-radius:10px; font-size:18px;">
+    <button onclick="login()" style="padding:15px 30px; background:#673ab7; color:white; border:none; border-radius:10px; font-size:18px;">
         تسجيل دخول Pi
     </button>
 
     <script>
-        // تهيئة فورية
+        // هنا السر: لازم تتأكد إن الـ Sandbox شغال
         window.onload = function() {
             try {
                 window.Pi.init({ version: "2.0", sandbox: true });
-                document.getElementById('info').innerText = "المكتبة جاهزة والشرطة المائلة مضافة ✅";
+                document.getElementById('info').innerText = "المكتبة جاهزة.. اضغط دخول ✅";
             } catch(e) {
-                document.getElementById('info').innerText = "خطأ في تحميل المكتبة ❌";
+                document.getElementById('info').innerText = "خطأ في الاتصال ❌";
             }
         };
 
         async function login() {
             try {
-                const auth = await window.Pi.authenticate(['username'], function(p){});
-                document.getElementById('info').innerText = "أهلاً بك يا " + auth.user.username;
-                alert("تم الدخول بنجاح!");
+                // المحاولة دي هتفتح نافذة Pi الرسمية
+                const auth = await window.Pi.authenticate(['username', 'payments'], function(p){});
+                document.getElementById('info').innerText = "تم الدخول: " + auth.user.username;
+                alert("مبروك يا هندسة! اشتغل");
             } catch (err) {
-                alert("العطل الحالي: " + err.message);
+                // لو ظهرت رسالة هنا، قولي مكتوب فيها إيه بالظبط
+                alert("سبب الرفض: " + err.message);
             }
         }
     </script>
