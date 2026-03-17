@@ -6,75 +6,48 @@
     <title>My Trading Test</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0ebf8; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        h1 { color: #673ab7; font-size: 24px; }
-        .btn-main { background-color: #673ab7; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn-main:disabled { background-color: #ccc; cursor: not-allowed; }
-        #status-text { color: #555; margin-bottom: 20px; font-weight: bold; }
-        .trading-panel { display: none; margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
-        .stat-box { background: #f9f9f9; padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 80%; max-width: 400px; }
+        button { background-color: #673ab7; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        button:disabled { background-color: #ccc; }
+        #status { margin-top: 15px; color: #555; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>My Trading Test 🚀</h1>
-    <p id="status-text">جاري بدء الاتصال...</p>
-    
-    <button id="login-btn" class="btn-main" disabled onclick="loginWithPi()">انتظر ثواني...</button>
-
-    <div id="trading-panel" class="trading-panel">
-        <div class="stat-box">الرصيد التجريبي: <span id="balance">100 IRRA</span></div>
-        <p>مرحباً بك في لوحة التداول</p>
+    <div class="card">
+        <h2>🚀 My Trading Test</h2>
+        <p>مرحباً بك في تطبيق التداول التجريبي</p>
+        <button id="login-btn">تسجيل دخول باستخدام Pi</button>
+        <div id="status">في انتظار الاتصال...</div>
     </div>
-</div>
 
-<script>
-    const Pi = window.Pi;
-    const loginBtn = document.getElementById('login-btn');
-    const statusText = document.getElementById('status-text');
-
-    // وظيفة ذكية للاتصال بالشبكة مع إعادة محاولة تلقائية
-    function startPiConnection() {
-        statusText.innerText = "جاري الاتصال بـ Pi Network...";
-        statusText.style.color = "#673ab7";
-
-        Pi.init({ version: "1.5" }).then(() => {
-            console.log("Success!");
-            loginBtn.disabled = false;
-            loginBtn.innerText = "تسجيل الدخول باستخدام باي";
-            statusText.innerText = "الشبكة جاهزة الآن ✅";
-            statusText.style.color = "green";
-        }).catch((err) => {
-            console.error(err);
-            statusText.innerText = "فشل الاتصال.. سأحاول مجدداً خلال 3 ثواني";
-            statusText.style.color = "red";
-            // إعادة المحاولة بعد 3 ثواني لضمان تخطي الخطأ
-            setTimeout(startPiConnection, 3000);
-        });
-    }
-
-    // بدء العملية فور تحميل الصفحة
-    startPiConnection();
-
-    async function loginWithPi() {
+    <script>
+        // 1. تعريف الـ SDK
+        const Pi = window.Pi;
+        
+        // 2. تشغيل الـ SDK (تأكد من وجود sandbox: true للتجربة)
         try {
-            const scopes = ['username', 'payments'];
-            const user = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            
-            loginBtn.style.display = 'none';
-            document.getElementById('trading-panel').style.display = 'block';
-            statusText.innerHTML = "أهلاً بك يا <b>" + user.user.username + "</b>";
+            Pi.init({ version: "2.0", sandbox: true });
+            document.getElementById('status').innerText = "متصل بشبكة Pi ✅";
         } catch (err) {
-            alert("خطأ: تأكد من فتح الرابط داخل متصفح Pi");
+            document.getElementById('status').innerText = "خطأ في الاتصال بالمكتبة";
         }
-    }
 
-    function onIncompletePaymentFound(payment) {
-        console.log("Incomplete Payment found", payment);
-    };
-</script>
+        // 3. وظيفة تسجيل الدخول
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            try {
+                const scopes = ['username', 'payments'];
+                function onIncompletePaymentFound(payment) { /* للتعامل مع المدفوعات المعلقة */ }
 
+                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                document.getElementById('status').innerText = "أهلاً بك: " + auth.user.username;
+                alert("تم تسجيل الدخول بنجاح يا برنس!");
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = "فشل تسجيل الدخول: " + error.message;
+            }
+        });
+    </script>
 </body>
 </html>
