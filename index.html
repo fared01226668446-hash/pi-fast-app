@@ -3,43 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فحص الفارس</title>
+    <title>منصة الفارس</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body style="text-align:center; padding-top:50px; font-family:sans-serif; background:#f4f4f9;">
-    <h2>🚀 اختبار الدخول السريع</h2>
-    <div id="info" style="margin:20px; padding:15px; background:#fff; border-radius:10px; border: 1px solid #ccc;">
-        جاري تهيئة النظام...
+    <h2>🚀 منصة الفارس للتداول</h2>
+    <div id="status" style="margin:20px; padding:15px; background:#fff; border-radius:10px; border:1px solid #ddd;">
+        جاري فحص الرابط...
     </div>
-    <button onclick="checkAuth()" style="padding:15px 30px; background:#673ab7; color:white; border:none; border-radius:10px; font-size:18px; cursor:pointer;">
-        اضغط هنا بقوة 
+    <button onclick="login()" style="padding:15px 30px; background:#673ab7; color:white; border:none; border-radius:10px; font-size:18px; cursor:pointer;">
+        تسجيل دخول Pi
     </button>
 
     <script>
-        // 1. تشغيل المكتبة فوراً
+        // تهيئة المكتبة بطريقة مرنة
         window.onload = function() {
             try {
+                // شلنا القيود اللي بتعمل مشاكل مع الروابط
                 window.Pi.init({ version: "2.0", sandbox: true });
-                document.getElementById('info').innerText = "✅ المكتبة جاهزة للعمل";
+                document.getElementById('status').innerText = "✅ جاهز للدخول";
             } catch(e) {
-                document.getElementById('info').innerText = "❌ فشل في الاتصال بالشبكة";
+                document.getElementById('status').innerText = "❌ افتح التطبيق من Pi Browser";
             }
         };
 
-        // 2. دالة الدخول المختصرة جداً
-        async function checkAuth() {
-            const infoBox = document.getElementById('info');
-            infoBox.innerText = "⏳ جاري محاولة الدخول...";
-            
+        async function login() {
+            const status = document.getElementById('status');
+            status.innerText = "⏳ جاري محاولة فتح النافذة...";
             try {
-                // طلب الاسم فقط بدون أي تعقيدات
+                // طلب تسجيل الدخول
                 const auth = await window.Pi.authenticate(['username'], function(p){});
-                infoBox.innerText = "🎉 مبروك! الاسم هو: " + auth.user.username;
-                alert("اشتغل يا هندسة! أهلاً بك " + auth.user.username);
+                status.innerText = "✅ مبروك! الاسم: " + auth.user.username;
+                alert("أهلاً بك يا فارس!");
             } catch (err) {
-                // الرسالة دي هي اللي فيها الحل
-                infoBox.innerText = "❌ خطأ تقني: " + err.message;
-                alert("السيستم بيقول: " + err.message);
+                status.innerText = "❌ خطأ: " + err.message;
+                alert("السبب التقني: " + err.message);
             }
         }
     </script>
