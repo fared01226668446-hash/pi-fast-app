@@ -1,26 +1,51 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تطبيق أحمد على باي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيقي الأول في شبكة باي</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+        #login-btn { 
+            background-color: #673ab7; color: white; border: none; 
+            padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; 
+        }
+        #user-info { margin-top: 20px; font-size: 20px; color: #333; }
+    </style>
 </head>
-<body style="text-align: center; font-family: sans-serif; padding-top: 50px;">
+<body>
+
     <h1>تطبيقي الأول في شبكة باي</h1>
-    <button id="btn" style="padding: 15px; background: #673ab7; color: white; border: none; border-radius: 10px;">
-        تسجيل الدخول باستخدام Pi
-    </button>
+    
+    <button id="login-btn">تسجيل الدخول باستخدام باي</button>
+    
+    <div id="user-info"></div>
+
     <script>
+        // تهيئة Pi SDK
         const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true });
-        document.getElementById('btn').onclick = function() {
-            Pi.authenticate(['username', 'payments'])
-              .then(function(auth) {
-                alert("مرحباً بك يا " + auth.user.username);
-              })
-              .catch(function(error) {
-                console.error(error);
-              });
+        Pi.init({ version: "2.0", sandbox: true }); // استخدم sandbox: true للتجربة
+
+        const loginBtn = document.getElementById('login-btn');
+        const userInfo = document.getElementById('user-info');
+
+        loginBtn.onclick = function() {
+            // طلب تسجيل الدخول
+            const scopes = ['username', 'payments'];
+            
+            function onIncompletePaymentFound(payment) {
+                console.log("هناك مدفوعات لم تكتمل");
+            };
+
+            Pi.authenticate(scopes, onIncompletePaymentFound).then(function(auth) {
+                userInfo.innerHTML = "أهلاً بك يا " + auth.user.username + "! تم تسجيل الدخول بنجاح.";
+                loginBtn.style.display = 'none';
+                console.log("تم تسجيل الدخول للمستخدم:", auth.user.username);
+            }).catch(function(error) {
+                console.error("خطأ في تسجيل الدخول:", error);
+                alert("حدث خطأ أثناء تسجيل الدخول، تأكد من فتح الرابط داخل Pi Browser.");
+            });
         };
     </script>
 </body>
