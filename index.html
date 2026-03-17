@@ -1,49 +1,40 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة تداول الفارس</title>
+    <title>منصة الفارس</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { background: white; width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; overflow: hidden; }
-        .header { background: #673ab7; color: white; padding: 20px; }
-        .btn { border: none; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; width: 80%; margin: 10px 0; }
-        #login-btn { background: #673ab7; color: white; }
-        #status-box { background: #eee; padding: 10px; margin: 10px; font-size: 12px; border-radius: 10px; color: #333; }
-    </style>
 </head>
-<body>
+<body style="text-align:center; padding-top:50px; font-family:sans-serif; background:#f4f4f9;">
+    <h2>🚀 منصة الفارس للتداول</h2>
+    <div id="info" style="margin:20px; padding:15px; background:#fff; border-radius:10px;">
+        جاري فحص الاتصال...
+    </div>
+    <button onclick="login()" style="padding:15px 30px; background:#673ab7; color:#white; border:none; border-radius:10px; font-size:18px;">
+        تسجيل دخول Pi
+    </button>
 
-<div class="container">
-    <div class="header"><h2>🚀 منصة الفارس</h2></div>
-    <div id="status-box">في انتظار ضغطة الزر...</div>
-    <button id="login-btn" class="btn" onclick="forceLogin()">دخول يدوي (اضغط هنا)</button>
-</div>
+    <script>
+        // تهيئة فورية
+        window.onload = function() {
+            try {
+                window.Pi.init({ version: "2.0", sandbox: true });
+                document.getElementById('info').innerText = "المكتبة جاهزة والشرطة المائلة مضافة ✅";
+            } catch(e) {
+                document.getElementById('info').innerText = "خطأ في تحميل المكتبة ❌";
+            }
+        };
 
-<script>
-    // 1. تهيئة فورية
-    try {
-        window.Pi.init({ version: "2.0", sandbox: true });
-    } catch(e) { console.error(e); }
-
-    async function forceLogin() {
-        const status = document.getElementById('status-box');
-        status.innerText = "جاري محاولة فتح المحفظة...";
-        
-        try {
-            // محاولة الدخول بطلب تصريح محدود جداً عشان نضمن السرعة
-            const auth = await window.Pi.authenticate(['username'], function(payment){});
-            status.innerText = "تم الدخول بنجاح: " + auth.user.username;
-            alert("اشتغل يا هندسة! أهلاً " + auth.user.username);
-        } catch (error) {
-            status.innerText = "خطأ: " + error.message;
-            // لو طلع الخطأ ده، صورهولي فوراً
-            console.log(error);
+        async function login() {
+            try {
+                const auth = await window.Pi.authenticate(['username'], function(p){});
+                document.getElementById('info').innerText = "أهلاً بك يا " + auth.user.username;
+                alert("تم الدخول بنجاح!");
+            } catch (err) {
+                alert("العطل الحالي: " + err.message);
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
