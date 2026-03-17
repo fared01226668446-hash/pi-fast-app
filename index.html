@@ -3,88 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة تداول الفارس</title>
+    <title>كاشف أعطال الفارس</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { background: white; width: 100%; max-width: 450px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: #673ab7; color: white; padding: 20px; text-align: center; }
-        .balance-card { padding: 30px; text-align: center; border-bottom: 1px solid #eee; }
-        .balance-amount { font-size: 32px; font-weight: bold; color: #2ecc71; margin: 10px 0; }
-        .actions { display: flex; justify-content: space-around; padding: 20px; background: #fafafa; }
-        .btn { border: none; padding: 15px 30px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 45%; }
-        .btn-buy { background: #2ecc71; color: white; }
-        .btn-sell { background: #e74c3c; color: white; }
-        .footer { padding: 20px; text-align: center; background: #eee; }
-        #login-btn { background: #673ab7; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; }
-        #user-info { margin-top: 10px; font-weight: bold; color: #673ab7; }
+        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; text-align: center; }
+        #console-log { background: #333; color: #0f0; padding: 10px; border-radius: 10px; text-align: left; font-size: 12px; height: 150px; overflow-y: auto; margin-top: 20px; direction: ltr; }
+        .btn { background: #673ab7; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h2>🚀 منصة تداول الفارس</h2>
-        <div id="status">جاري الاتصال بـ Pi...</div>
-    </div>
+    <h2>🚀 فحص اتصال Pi</h2>
+    <p>لو الزرار مشغالش، بص على الشاشة السوداء تحت وقولي المكتوب إيه</p>
 
-    <div class="balance-card">
-        <div>رصيدك التجريبي</div>
-        <div class="balance-amount" id="balance">100.00</div>
-        <div id="user-info">جاري التحقق من الهوية...</div>
-    </div>
+    <button class="btn" onclick="runLogin()">اضغط هنا للدخول</button>
 
-    <div class="actions">
-        <button class="btn btn-buy" onclick="trade('buy')">شراء</button>
-        <button class="btn btn-sell" onclick="trade('sell')">بيع</button>
-    </div>
+    <div id="console-log">في انتظار الضغط على الزرار...</div>
 
-    <div class="footer" id="login-section">
-        <button id="login-btn" onclick="login()">دخول يدوي باستخدام Pi</button>
-    </div>
-</div>
-
-<script>
-    const Pi = window.Pi;
-    let userBalance = 100.00;
-
-    // 1. تشغيل الـ SDK أول ما الصفحة تفتح
-    window.onload = function() {
-        try {
-            Pi.init({ version: "2.0", sandbox: true });
-            document.getElementById('status').innerText = "✅ متصل بشبكة Pi";
-            // محاولة تسجيل دخول تلقائي
-            login();
-        } catch (e) {
-            document.getElementById('status').innerText = "❌ خطأ في المكتبة";
+    <script>
+        // دالة لكتابة الأعطال على الشاشة
+        function log(msg) {
+            const el = document.getElementById('console-log');
+            el.innerHTML += "<br>> " + msg;
         }
-    };
 
-    // 2. دالة تسجيل الدخول
-    async function login() {
-        try {
-            const auth = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
-            document.getElementById('user-info').innerText = "أهلاً بك: " + auth.user.username;
-            document.getElementById('login-section').style.display = 'none';
-        } catch (error) {
-            document.getElementById('user-info').innerText = "يرجى تسجيل الدخول يدوياً";
-            console.error(error);
+        const Pi = window.Pi;
+
+        async function runLogin() {
+            log("بدء محاولة تسجيل الدخول...");
+            try {
+                // محاولة تشغيل الـ SDK
+                Pi.init({ version: "2.0", sandbox: true });
+                log("تم تشغيل Pi.init بنجاح");
+
+                // طلب التصريح
+                const auth = await Pi.authenticate(['username'], function(p){});
+                log("نجاح! أهلاً: " + auth.user.username);
+                alert("اشتغل يا برنس!");
+            } catch (err) {
+                log("خطأ حقيقي: " + err.message);
+                log("النوع: " + err.name);
+            }
         }
-    }
-
-    function onIncompletePaymentFound(payment) { }
-
-    // 3. دالات التداول
-    function trade(type) {
-        if (type === 'buy') {
-            userBalance += 10;
-        } else {
-            if (userBalance >= 10) userBalance -= 10;
-            else alert("الرصيد لا يكفي!");
-        }
-        document.getElementById('balance').innerText = userBalance.toFixed(2);
-    }
-</script>
-
+    </script>
 </body>
 </html>
