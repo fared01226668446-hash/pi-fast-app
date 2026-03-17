@@ -1,29 +1,19 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
-<body style="text-align:center; padding-top:50px; font-family:sans-serif;">
-    <h2 id="msg">منصة الفارس الجديدة 🚀</h2>
-    <button onclick="start()" style="padding:20px; background:blue; color:white; border-radius:10px;">اضغط للربط الآن</button>
-    <p id="error" style="color:red;"></p>
-
-    <script>
-        Pi.init({ version: "2.0", sandbox: true });
-
-        async function start() {
-            document.getElementById('msg').innerText = "⏳ جاري الاتصال...";
-            try {
-                // محاولة الاتصال بمهلة زمنية قصيرة
-                const auth = await Pi.authenticate(['username'], function(p){});
-                document.getElementById('msg').innerText = "✅ نجح الاتصال: " + auth.user.username;
-            } catch (err) {
-                document.getElementById('error').innerText = "العطل: " + err.message;
-                alert("تنبيه من المتصفح: " + err.message);
-            }
-        }
-    </script>
+<body style="text-align:center;padding:50px;">
+ <button onclick="a()" style="padding:20px;">ربط المحفظة</button>
+ <h3 id="t">انتظر..</h3>
+ <script>
+  Pi.init({version:"2.0",sandbox:true});
+  async function a(){
+   try{
+    const auth=await Pi.authenticate(['username'],(p)=>{});
+    document.getElementById('t').innerText="تم: "+auth.user.username;
+   }catch(e){alert("Error: "+e.message);}
+  }
+ </script>
 </body>
 </html>
