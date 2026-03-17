@@ -3,48 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كاشف أعطال الفارس</title>
+    <title>منصة تداول الفارس</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; text-align: center; }
-        #console-log { background: #333; color: #0f0; padding: 10px; border-radius: 10px; text-align: left; font-size: 12px; height: 150px; overflow-y: auto; margin-top: 20px; direction: ltr; }
-        .btn { background: #673ab7; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 18px; cursor: pointer; }
+        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background: white; width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; overflow: hidden; }
+        .header { background: #673ab7; color: white; padding: 20px; }
+        .btn { border: none; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; width: 80%; margin: 10px 0; }
+        #login-btn { background: #673ab7; color: white; }
+        #status-box { background: #eee; padding: 10px; margin: 10px; font-size: 12px; border-radius: 10px; color: #333; }
     </style>
 </head>
 <body>
 
-    <h2>🚀 فحص اتصال Pi</h2>
-    <p>لو الزرار مشغالش، بص على الشاشة السوداء تحت وقولي المكتوب إيه</p>
+<div class="container">
+    <div class="header"><h2>🚀 منصة الفارس</h2></div>
+    <div id="status-box">في انتظار ضغطة الزر...</div>
+    <button id="login-btn" class="btn" onclick="forceLogin()">دخول يدوي (اضغط هنا)</button>
+</div>
 
-    <button class="btn" onclick="runLogin()">اضغط هنا للدخول</button>
+<script>
+    // 1. تهيئة فورية
+    try {
+        window.Pi.init({ version: "2.0", sandbox: true });
+    } catch(e) { console.error(e); }
 
-    <div id="console-log">في انتظار الضغط على الزرار...</div>
-
-    <script>
-        // دالة لكتابة الأعطال على الشاشة
-        function log(msg) {
-            const el = document.getElementById('console-log');
-            el.innerHTML += "<br>> " + msg;
+    async function forceLogin() {
+        const status = document.getElementById('status-box');
+        status.innerText = "جاري محاولة فتح المحفظة...";
+        
+        try {
+            // محاولة الدخول بطلب تصريح محدود جداً عشان نضمن السرعة
+            const auth = await window.Pi.authenticate(['username'], function(payment){});
+            status.innerText = "تم الدخول بنجاح: " + auth.user.username;
+            alert("اشتغل يا هندسة! أهلاً " + auth.user.username);
+        } catch (error) {
+            status.innerText = "خطأ: " + error.message;
+            // لو طلع الخطأ ده، صورهولي فوراً
+            console.log(error);
         }
+    }
+</script>
 
-        const Pi = window.Pi;
-
-        async function runLogin() {
-            log("بدء محاولة تسجيل الدخول...");
-            try {
-                // محاولة تشغيل الـ SDK
-                Pi.init({ version: "2.0", sandbox: true });
-                log("تم تشغيل Pi.init بنجاح");
-
-                // طلب التصريح
-                const auth = await Pi.authenticate(['username'], function(p){});
-                log("نجاح! أهلاً: " + auth.user.username);
-                alert("اشتغل يا برنس!");
-            } catch (err) {
-                log("خطأ حقيقي: " + err.message);
-                log("النوع: " + err.name);
-            }
-        }
-    </script>
 </body>
 </html>
