@@ -3,50 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيقي الأول في شبكة باي</title>
+    <title>My Trading Test</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
-        #login-btn { 
-            background-color: #673ab7; color: white; border: none; 
-            padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; 
-        }
-        #user-info { margin-top: 20px; font-size: 20px; color: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0ebf8; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        h1 { color: #673ab7; font-size: 24px; }
+        .btn-main { background-color: #673ab7; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-main:hover { background-color: #512da8; }
+        .trading-panel { display: none; margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
+        .stat-box { background: #f9f9f9; padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; }
+        .btn-buy { background-color: #4caf50; color: white; border: none; padding: 10px; border-radius: 5px; width: 45%; cursor: pointer; }
+        .btn-sell { background-color: #f44336; color: white; border: none; padding: 10px; border-radius: 5px; width: 45%; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h1>تطبيقي الأول في شبكة باي</h1>
+<div class="container">
+    <h1>My Trading Test 🚀</h1>
+    <p id="status-text">مرحباً بك في منصتك التجريبية</p>
     
-    <button id="login-btn">تسجيل الدخول باستخدام باي</button>
-    
-    <div id="user-info"></div>
+    <button id="login-btn" class="btn-main" onclick="loginWithPi()">تسجيل الدخول باستخدام باي</button>
 
-    <script>
-        // تهيئة Pi SDK
-        const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true }); // استخدم sandbox: true للتجربة
+    <div id="trading-panel" class="trading-panel">
+        <div class="stat-box">الرصيد التجريبي: <span id="balance">100 IRRA</span></div>
+        <div style="display: flex; justify-content: space-between;">
+            <button class="btn-buy" onclick="createTrade('شراء')">شراء (0.1 Test Pi)</button>
+            <button class="btn-sell" onclick="createTrade('بيع')">بيع عملات</button>
+        </div>
+        <p style="font-size: 12px; color: #888; margin-top: 15px;">سيتم فتح المحفظة للتوقيع عند الشراء</p>
+    </div>
+</div>
 
-        const loginBtn = document.getElementById('login-btn');
-        const userInfo = document.getElementById('user-info');
+<script>
+    const Pi = window.Pi;
+    Pi.init({ version: "1.5" });
 
-        loginBtn.onclick = function() {
-            // طلب تسجيل الدخول
+    async function loginWithPi() {
+        try {
             const scopes = ['username', 'payments'];
+            const user = await Pi.authenticate(scopes, onIncompletePaymentFound);
             
-            function onIncompletePaymentFound(payment) {
-                console.log("هناك مدفوعات لم تكتمل");
-            };
+            // تحديث الواجهة بعد الدخول
+            document.getElementById('login-btn').style.display = 'none';
+            document.getElementById('trading-panel').style.display = 'block';
+            document.getElementById('status-text').innerHTML = "أهلاً بك يا <b>" + user.user.username + "</b>";
+        } catch (err) {
+            alert("فشل تسجيل الدخول: " + err.message);
+        }
+    }
 
-            Pi.authenticate(scopes, onIncompletePaymentFound).then(function(auth) {
-                userInfo.innerHTML = "أهلاً بك يا " + auth.user.username + "! تم تسجيل الدخول بنجاح.";
-                loginBtn.style.display = 'none';
-                console.log("تم تسجيل الدخول للمستخدم:", auth.user.username);
-            }).catch(function(error) {
-                console.error("خطأ في تسجيل الدخول:", error);
-                alert("حدث خطأ أثناء تسجيل الدخول، تأكد من فتح الرابط داخل Pi Browser.");
+    async function createTrade(type) {
+        if (type === 'بيع') {
+            alert("تم تسجيل أمر البيع بنجاح!");
+            return;
+        }
+
+        // إنشاء عملية دفع حقيقية على الـ Testnet
+        try {
+            const payment = await Pi.createPayment({
+                amount: 0.1,
+                memo: "اختبار شراء عملة IRRA",
+                metadata: { orderId: "Trade_" + Date.now() }
+            }, {
+                onReadyForServerApproval: (paymentId) => { console.log("Approved:", paymentId); },
+                onReadyForServerCompletion: (paymentId, txid) => { alert("تمت العملية! ID: " + txid); },
+                onCancel: (paymentId) => { console.log("Cancelled"); },
+                onError: (error, payment) => { console.error("Error:", error); }
             });
-        };
-    </script>
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function onIncompletePaymentFound(payment) {
+        console.log("هناك دفع غير مكتمل", payment);
+    };
+</script>
+
 </body>
 </html>
