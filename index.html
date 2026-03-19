@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتب الفريد - Pi App</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+</head>
+<body style="text-align:center; padding-top: 50px; font-family: sans-serif;">
+    <div style="background: white; padding: 20px; border-radius: 10px; display: inline-block; border: 1px solid #ddd;">
+        <h2 style="color: #673ab7;">مكتب الفريد</h2>
+        <p>مشروع التداول - شبكة باي</p>
+        <button onclick="login()" style="padding: 12px 25px; font-size: 16px; background: #673ab7; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            تسجيل الدخول عبر Pi
+        </button>
+        <h4 id="status" style="margin-top: 20px; color: #666;">في انتظار الاتصال...</h4>
+    </div>
+
+    <script>
+        Pi.init({ version: "2.0", sandbox: true });
+        async function login() {
+            try {
+                const auth = await Pi.authenticate(['username', 'payments'], function(p){});
+                document.getElementById('status').innerText = "أهلاً: " + auth.user.username;
+            } catch (e) {
+                alert("حدث خطأ: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
