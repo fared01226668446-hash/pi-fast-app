@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب خدمات التداول</title>
+    <title>مكتب الفريد للخدمات</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; background-color: #f0f0f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 350px; border: 2px solid #673ab7; }
-        h1 { color: #673ab7; font-size: 22px; }
+        h1 { color: #673ab7; font-size: 24px; margin-bottom: 10px; }
         .btn { background-color: #673ab7; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 18px; cursor: pointer; margin-top: 20px; font-weight: bold; }
         #status { margin-top: 15px; font-size: 16px; color: blue; font-weight: bold; }
     </style>
 </head>
 <body>
 <div class="card">
-    <h1>مكتب خدمات التداول</h1>
-    <p>المنصة المعتمدة للتداول الآلي</p>
+    <h1>مكتب الفريد للخدمات</h1>
+    <p>مرحباً بك في تطبيقنا</p>
     <button class="btn" id="login-btn">دخول عبر شبكة Pi</button>
     <div id="status">جاري الاتصال بالشبكة...</div>
 </div>
 
 <script>
-    // تهيئة الـ Pi SDK
+    // تشغيل نظام Pi
     const Pi = window.Pi;
     Pi.init({ version: "2.0" });
 
@@ -31,20 +31,15 @@
         status.innerHTML = "جاري التحقق...";
         
         try {
-            const scopes = ['username', 'payments'];
-            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+            // طلب إذن الدخول بالاسم فقط
+            const auth = await Pi.authenticate(['username'], function(payment){});
             status.innerHTML = "✅ أهلاً بك يا هندسة: " + auth.user.username;
             status.style.color = "green";
         } catch (err) {
-            status.innerHTML = "❌ فشل الدخول.. تأكد أنك تفتح التطبيق من Pi Browser";
+            status.innerHTML = "❌ يرجى فتح الرابط من داخل تطبيق Pi Browser";
             status.style.color = "red";
-            console.error(err);
         }
     });
-
-    function onIncompletePaymentFound(payment) {
-        console.log("هناك دفعة غير مكتملة:", payment);
-    }
 </script>
 </body>
 </html>
