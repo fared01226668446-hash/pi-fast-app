@@ -6,24 +6,42 @@
     <title>مكتب الفريد - Pi App</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
-<body style="text-align:center; padding-top: 50px; font-family: sans-serif;">
-    <div style="background: white; padding: 20px; border-radius: 10px; display: inline-block; border: 1px solid #ddd;">
+<body style="text-align:center; padding-top: 50px; font-family: sans-serif; background-color: #f8f9fa;">
+
+    <div style="background: white; padding: 25px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 85%;">
         <h2 style="color: #673ab7;">مكتب الفريد</h2>
-        <p>مشروع التداول - شبكة باي</p>
-        <button onclick="login()" style="padding: 12px 25px; font-size: 16px; background: #673ab7; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        <p>مشروع التداول الآلي</p>
+        
+        <button onclick="login()" style="padding: 15px 30px; font-size: 18px; background: #673ab7; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold;">
             تسجيل الدخول عبر Pi
         </button>
-        <h4 id="status" style="margin-top: 20px; color: #666;">في انتظار الاتصال...</h4>
+        
+        <p id="status" style="margin-top: 20px; color: #555;">الحالة: جاهز للاتصال</p>
     </div>
 
     <script>
-        Pi.init({ version: "2.0", sandbox: true });
+        // تفعيل وضع الاختبار (sandbox) لضمان عمل الزر
+        try {
+            Pi.init({ version: "2.0", sandbox: true });
+        } catch (e) {
+            console.error("خطأ في المكتبة");
+        }
+
         async function login() {
+            const status = document.getElementById('status');
+            status.innerText = "جاري الاتصال بـ Pi Browser...";
+            
             try {
-                const auth = await Pi.authenticate(['username', 'payments'], function(p){});
-                document.getElementById('status').innerText = "أهلاً: " + auth.user.username;
-            } catch (e) {
-                alert("حدث خطأ: " + e.message);
+                const scopes = ['username', 'payments'];
+                const auth = await Pi.authenticate(scopes, function(p){});
+                
+                status.innerText = "أهلاً بك: " + auth.user.username;
+                status.style.color = "green";
+                alert("تم تسجيل الدخول بنجاح يا " + auth.user.username);
+            } catch (err) {
+                status.innerText = "فشل الاتصال";
+                status.style.color = "red";
+                alert("تنبيه: " + err.message);
             }
         }
     </script>
