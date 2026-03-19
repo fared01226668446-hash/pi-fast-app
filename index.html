@@ -14,19 +14,15 @@
     </style>
 </head>
 <body>
-
 <div class="card">
     <h1>مكتب الفريد</h1>
     <p>منصة التداول الآلي الذكية</p>
     <button class="btn" onclick="login()">تسجيل الدخول عبر Pi</button>
     <div id="status">جاري الاتصال بالشبكة...</div>
 </div>
-
 <script>
     const Pi = window.Pi;
-    // تم ربط الكود الخاص بك هنا
     Pi.init({ version: "2.0", sandbox: true });
-
     async function login() {
         const status = document.getElementById('status');
         try {
@@ -39,11 +35,7 @@
             status.style.color = "red";
         }
     }
-
-    function onIncompletePaymentFound(payment) {
-        console.log("دفعة غير مكتملة", payment);
-    }
+    function onIncompletePaymentFound(payment) { console.log(payment); }
 </script>
-
 </body>
 </html>
