@@ -1,34 +1,33 @@
 <script>
     const Pi = window.Pi;
-    // تهيئة التطبيق مع تفعيل وضع الاختبار (Sandbox)
+    // التأكد من تهيئة الـ SDK مع وضع الاختبار
     Pi.init({ version: "2.0", sandbox: true });
 
     async function login() {
         const status = document.getElementById("status");
-        status.innerHTML = "جاري الاتصال بـ Pi Network...";
+        status.innerHTML = "جاري الاتصال بالشبكة...";
         
         try {
-            // تحديد البيانات المطلوبة (الاسم)
+            // طلب التوثيق الأساسي للحصول على اسم المستخدم
             const scopes = ['username'];
             
-            // وظيفة إلزامية للتعامل مع المدفوعات غير المكتملة
+            // هذه الوظيفة ضرورية جداً في الـ SDK الجديد لضمان استقرار الربط
             const onIncompletePaymentFound = (payment) => {
                 console.log("Incomplete payment found", payment);
             };
 
-            // السطر الأهم: طلب التوثيق الحقيقي
+            // تنفيذ عملية التوثيق البرمي
             const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
             
-            // إذا نجح التوثيق
-            status.innerHTML = "✅ تم التحقق: " + auth.user.username;
-            status.style.color = "#4CAF50";
-            console.log("Success!", auth);
+            // عرض النتيجة عند النجاح
+            status.innerHTML = "✅ أهلاً بك: " + auth.user.username;
+            status.style.color = "#2e7d32";
             
-        } catch (err) {
-            // في حالة الرفض أو الخطأ
-            status.innerHTML = "❌ فشل التحقق: " + err.message;
-            status.style.color = "#f44336";
-            console.error("Auth Error:", err);
+        } catch (error) {
+            // معالجة أخطاء الربط البرمي
+            status.innerHTML = "❌ فشل في الربط البرمي (SDK)";
+            status.style.color = "#d32f2f";
+            console.error("SDK Error:", error);
         }
     }
 </script>
