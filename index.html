@@ -1,37 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>مكتب الفريد</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #f0f0f5; }
-        .card { background: white; padding: 30px; border-radius: 20px; display: inline-block; border: 2px solid #673ab7; }
-        .btn { background-color: #673ab7; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; }
-        #status { margin-top: 20px; color: blue; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>مكتب الفريد للخدمات</h2>
-        <button class="btn" onclick="login()">دخول عبر شبكة Pi</button>
-        <div id="status">جاهز للاتصال..</div>
-    </div>
+async function login() {
+    const status = document.getElementById("status");
+    status.innerHTML = "جاري التحقق.. من فضلك انتظر";
+    
+    try {
+        // يجب تحديد الصلاحيات (Scopes) التي يطلبها التطبيق
+        const scopes = ['username'];
+        
+        // دالة ضرورية للتعامل مع أي مدفوعات معلقة (حتى لو لم تستخدمها الآن)
+        const onIncompletePaymentFound = (payment) => {
+            console.log("Incomplete payment found", payment);
+        };
 
-    <script>
-        window.Pi.init({ version: "2.0" });
-        async function login() {
-            const status = document.getElementById('status');
-            status.innerHTML = "جاري التحقق.. من فضلك انتظر";
-            try {
-                const auth = await window.Pi.authenticate(['username'], function(p){});
-                status.innerHTML = "✅ أهلاً بك: " + auth.user.username;
-                status.style.color = "green";
-            } catch (e) {
-                status.innerHTML = "❌ خطأ: افتح التطبيق من Pi Browser";
-                status.style.color = "red";
-            }
-        }
-    </script>
-</body>
-</html>
+        const auth = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
+        
+        status.innerHTML = "✅ أهلاً بك: " + auth.user.username;
+        status.style.color = "green";
+    } catch (e) {
+        status.innerHTML = "❌ خطأ: يرجى فتح التطبيق من متصفح Pi";
+        status.style.color = "red";
+        console.error(e);
+    }
+}
