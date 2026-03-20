@@ -6,44 +6,57 @@
     <title>مكتب الفريد للخدمات</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; }
-        .logo { width: 70px; height: 70px; background: #673ab7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 15px; font-weight: bold; }
-        .btn { background-color: #673ab7; color: white; border: none; padding: 15px; font-size: 18px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
-        #status { margin-top: 20px; color: #666; font-size: 14px; min-height: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); text-align: center; width: 350px; border: 2px solid #673ab7; }
+        .logo-circle { width: 80px; height: 80px; background: #673ab7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; margin: 0 auto 20px; font-weight: bold; box-shadow: 0 5px 15px rgba(103, 58, 183, 0.4); }
+        h2 { color: #333; margin-bottom: 10px; font-size: 24px; }
+        p { color: #777; margin-bottom: 25px; font-size: 15px; }
+        .btn { background: linear-gradient(135deg, #673ab7, #512da8); color: white; border: none; padding: 16px; font-size: 18px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
+        #status { margin-top: 25px; font-size: 15px; color: #555; font-weight: 500; min-height: 25px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div class="logo">P</div>
+        <div class="logo-circle">P</div>
         <h2>مكتب الفريد للخدمات</h2>
+        <p>التطبيق الرسمي لخدمات Pi</p>
         <button class="btn" onclick="login()">دخول عبر شبكة Pi</button>
-        <div id="status">جاهز للاتصال..</div>
+        <div id="status">جاهز للربط المباشر..</div>
     </div>
 
     <script>
         const Pi = window.Pi;
-        // السطر 28 كما طلبت يا هندسة
+        // التهيئة الرسمية (Sandbox: false للعمل من داخل التطبيق الحقيقي)
         Pi.init({ version: "2.0", sandbox: false }); 
 
         async function login() {
             const status = document.getElementById("status");
-            status.innerHTML = "⏳ جاري التحقق من الهوية..";
+            status.innerHTML = "⏳ جاري طلب التوثيق من Pi...";
+            status.style.color = "#673ab7";
             
             try {
+                // طلب الاسم فقط لضمان سرعة الاستجابة
                 const scopes = ['username'];
-                const onIncompletePaymentFound = (payment) => { };
+                
+                // وظيفة معالجة المدفوعات (إجبارية حتى لو لم تستخدمها)
+                const onIncompletePaymentFound = (payment) => {
+                    console.log("Found incomplete payment", payment);
+                };
 
-                // تنفيذ الربط الفعلي
+                // تنفيذ عملية التوثيق
                 const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
                 
-                status.innerHTML = "✅ أهلاً بك: " + auth.user.username;
+                // عرض رسالة النجاح باسمك
+                status.innerHTML = "✅ أهلاً بك يا بطل: " + auth.user.username;
                 status.style.color = "#2e7d32";
+                
             } catch (err) {
-                status.innerHTML = "❌ فشل التوثيق: " + err.message;
+                // عرض الخطأ بالتفصيل لو حدث
+                status.innerHTML = "❌ حدث خطأ: " + err.message;
                 status.style.color = "#d32f2f";
-                console.error(err);
+                console.error("SDK Error:", err);
             }
         }
     </script>
