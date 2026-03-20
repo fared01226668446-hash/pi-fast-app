@@ -6,61 +6,44 @@
     <title>مكتب الفريد للخدمات</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; }
-        .logo { width: 80px; height: 80px; background: #673ab7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 20px; font-weight: bold; }
-        h2 { color: #1a1a1a; margin-bottom: 10px; }
-        p { color: #666; margin-bottom: 30px; }
-        .btn { background-color: #673ab7; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; cursor: pointer; width: 100%; transition: background 0.3s; font-weight: 600; }
-        .btn:hover { background-color: #512da8; }
-        #status { margin-top: 25px; font-size: 16px; font-weight: 500; color: #444; min-height: 24px; }
+        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; }
+        .logo { width: 70px; height: 70px; background: #673ab7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 15px; }
+        .btn { background-color: #673ab7; color: white; border: none; padding: 15px; font-size: 18px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        #status { margin-top: 20px; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
+    <div class="card">
+        <div class="logo">P</div>
+        <h2>مكتب الفريد للخدمات</h2>
+        <button class="btn" onclick="login()">دخول عبر شبكة Pi</button>
+        <div id="status">جاهز للاتصال..</div>
+    </div>
 
-<div class="card">
-    <div class="logo">P</div>
-    <h2>مكتب الفريد للخدمات</h2>
-    <p>مرحباً بك في تطبيقنا الرسمي</p>
-    <button class="btn" onclick="login()">دخول عبر شبكة Pi</button>
-    <div id="status">جاهز للاتصال..</div>
-</div>
+    <script>
+        const Pi = window.Pi;
+        // جرب تغيير sandbox إلى false إذا لم يعمل الـ true
+        Pi.init({ version: "2.0", sandbox: true }); 
 
-<script>
-    const Pi = window.Pi;
-    // تهيئة التطبيق مع تفعيل وضع Sandbox ليتوافق مع Testnet في صورتك
-    Pi.init({ version: "2.0", sandbox: true }); 
-
-    async function login() {
-        const status = document.getElementById("status");
-        status.innerHTML = "⏳ جاري التحقق من الهوية..";
-        status.style.color = "#444";
-        
-        try {
-            // تحديد البيانات المطلوبة
-            const scopes = ['username'];
+        async function login() {
+            const status = document.getElementById("status");
+            status.innerHTML = "⏳ جاري الربط مع محفظة Pi..";
             
-            // وظيفة معالجة المدفوعات (إلزامية في SDK)
-            const onIncompletePaymentFound = (payment) => {
-                console.log("Incomplete payment:", payment);
-            };
+            try {
+                const scopes = ['username'];
+                const onIncompletePaymentFound = (payment) => { /* معالجة المدفوعات المعلقة */ };
 
-            // بدء عملية التوثيق الفعلي
-            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            
-            // عند نجاح الربط
-            status.innerHTML = "✅ أهلاً بك يا بطل: " + auth.user.username;
-            status.style.color = "#2e7d32";
-            console.log("Authentication successful", auth);
-            
-        } catch (err) {
-            // في حالة حدوث خطأ
-            status.innerHTML = "❌ فشل التحقق. تأكد من فتح الرابط داخل Pi Browser";
-            status.style.color = "#d32f2f";
-            console.error("Auth Error:", err);
+                // السطر البرمجي الذي ينهي "جاري التحقق"
+                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                
+                status.innerHTML = "✅ تم الدخول بنجاح: " + auth.user.username;
+                status.style.color = "green";
+            } catch (err) {
+                status.innerHTML = "❌ خطأ: " + err.message;
+                status.style.color = "red";
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
