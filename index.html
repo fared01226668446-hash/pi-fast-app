@@ -69,22 +69,22 @@
 
 <script>
     const Pi = window.Pi;
-    // تم إلغاء وضع الـ sandbox لتجربة الربط الفعلي
-    Pi.init({ version: "2.0" }); 
+    // تفعيل وضع الـ sandbox لضمان عمل الزرار في بيئة التجربة
+    Pi.init({ version: "2.0", sandbox: true }); 
 
     async function login() {
         try {
             const scopes = ['username', 'payments'];
             const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            alert("مرحباً بك: " + auth.user.username);
+            alert("أهلاً بك يا " + auth.user.username);
         } catch (err) {
             console.error(err);
-            alert("تنبيه: يرجى فتح الرابط من داخل متصفح Pi Browser ليعمل تسجيل الدخول.");
+            alert("تنبيه: تأكد من فتح الرابط من داخل Pi Browser وقم بتفعيل Sandbox من صفحة المطورين.");
         }
     }
 
     function onIncompletePaymentFound(payment) {
-        // معالجة المدفوعات المعلقة هنا
+        // معالجة المدفوعات المعلقة
     };
 </script>
 
