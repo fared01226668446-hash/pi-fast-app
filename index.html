@@ -1,12 +1,10 @@
+<script>
 async function login() {
     const status = document.getElementById("status");
     status.innerHTML = "جاري التحقق.. من فضلك انتظر";
     
     try {
-        // يجب تحديد الصلاحيات (Scopes) التي يطلبها التطبيق
         const scopes = ['username'];
-        
-        // دالة ضرورية للتعامل مع أي مدفوعات معلقة (حتى لو لم تستخدمها الآن)
         const onIncompletePaymentFound = (payment) => {
             console.log("Incomplete payment found", payment);
         };
@@ -18,6 +16,6 @@ async function login() {
     } catch (e) {
         status.innerHTML = "❌ خطأ: يرجى فتح التطبيق من متصفح Pi";
         status.style.color = "red";
-        console.error(e);
     }
 }
+</script>
