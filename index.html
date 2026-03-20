@@ -1,51 +1,34 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخدمات</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
-        h2 { color: #333; margin-bottom: 25px; }
-        .btn { background-color: #673ab7; color: white; border: none; padding: 12px 25px; font-size: 18px; border-radius: 8px; cursor: pointer; width: 100%; }
-        #status { margin-top: 25px; color: #666; font-size: 16px; }
-    </style>
-</head>
-<body>
-
-<div class="card">
-    <h2>مكتب الفريد للخدمات</h2>
-    <button class="btn" onclick="login()">دخول عبر شبكة Pi</button>
-    <div id="status">جاهز للاتصال..</div>
-</div>
-
 <script>
     const Pi = window.Pi;
-    // تفعيل الـ Sandbox ضروري جداً ليعمل الرابط الخاص بك في مرحلة الاختبار
-    Pi.init({ version: "2.0", sandbox: true }); 
+    // تهيئة التطبيق مع تفعيل وضع الاختبار (Sandbox)
+    Pi.init({ version: "2.0", sandbox: true });
 
     async function login() {
         const status = document.getElementById("status");
-        status.innerHTML = "جاري التحقق.. من فضلك انتظر";
+        status.innerHTML = "جاري الاتصال بـ Pi Network...";
         
         try {
+            // تحديد البيانات المطلوبة (الاسم)
             const scopes = ['username'];
-            const onIncompletePaymentFound = (payment) => { /* للتعامل مع المدفوعات لاحقاً */ };
+            
+            // وظيفة إلزامية للتعامل مع المدفوعات غير المكتملة
+            const onIncompletePaymentFound = (payment) => {
+                console.log("Incomplete payment found", payment);
+            };
 
-            // طلب الإذن من المستخدم
+            // السطر الأهم: طلب التوثيق الحقيقي
             const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
             
-            status.innerHTML = "✅ أهلاً بك يا بطل: " + auth.user.username;
-            status.style.color = "green";
-        } catch (e) {
-            status.innerHTML = "❌ خطأ: يرجى فتح التطبيق من متصفح Pi بالرابط الصحيح";
-            status.style.color = "red";
-            console.error(e);
+            // إذا نجح التوثيق
+            status.innerHTML = "✅ تم التحقق: " + auth.user.username;
+            status.style.color = "#4CAF50";
+            console.log("Success!", auth);
+            
+        } catch (err) {
+            // في حالة الرفض أو الخطأ
+            status.innerHTML = "❌ فشل التحقق: " + err.message;
+            status.style.color = "#f44336";
+            console.error("Auth Error:", err);
         }
     }
 </script>
-
-</body>
-</html>
