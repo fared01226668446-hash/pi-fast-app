@@ -1,38 +1,61 @@
-// استدعاء المكتبة
-const Pi = window.Pi;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتب الفريد للخرسانة الجاهزة</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 50px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-pi { background-color: #6d28d9; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .btn-pi:hover { background-color: #5b21b6; }
+    </style>
+</head>
+<body>
 
-// تهيئة التطبيق - تأكد من استخدام sandbox: true للمرحلة التجريبية
-Pi.init({ version: "2.0", sandbox: true });
-
-async function loginWithPi() {
-    const loginBtn = document.getElementById('login-btn');
+<div class="container">
+    <h1>مكتب الفريد للخدمات</h1>
+    <p>مرحباً بك في منصة خدمات الخرسانة الجاهزة</p>
     
-    try {
-        // تغيير نص الزر أثناء التحميل
-        loginBtn.innerText = "جاري الاتصال...";
-        
-        const scopes = ['username', 'payments'];
-        
-        // دالة التعامل مع الدفعات المعلقة (متطلب أساسي لـ Pi)
-        function onIncompletePaymentFound(payment) {
-            console.log("Incomplete payment found", payment);
-        };
+    <button id="login-btn" class="btn-pi" onclick="login()">تسجيل الدخول عبر Pi</button>
+    
+    <div id="user-info" style="margin-top: 20px; font-weight: bold; color: #6d28d9;"></div>
+</div>
 
-        // طلب التوثيق
-        const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-        
-        // عند النجاح
-        console.log("Success:", auth);
-        alert(`أهلاً بك يا ${auth.user.username} في تطبيق مكتب الفريد`);
-        
-        // يمكنك هنا توجيه المستخدم لصفحة خدمات الخرسانة
-        loginBtn.innerText = "تم تسجيل الدخول";
-        loginBtn.style.backgroundColor = "#4CAF50"; 
+<script>
+    // تهيئة Pi SDK
+    const Pi = window.Pi;
+    Pi.init({ version: "2.0", sandbox: true }); // استخدم sandbox: true لأنك على Testnet
 
-    } catch (err) {
-        // في حال الخطأ أو فتح المتصفح من خارج Pi Browser
-        console.error(err);
-        alert("يرجى فتح التطبيق من داخل Pi Browser لتفعيل خدمات مكتب الفريد.");
-        loginBtn.innerText = "فشل الدخول - حاول مجدداً";
+    async function login() {
+        const btn = document.getElementById('login-btn');
+        const userInfo = document.getElementById('user-info');
+        
+        try {
+            btn.innerText = "جاري التحقق...";
+            
+            const scopes = ['username', 'payments'];
+            
+            function onIncompletePaymentFound(payment) {
+                console.log("دفعة غير مكتملة:", payment);
+            };
+
+            // عملية التوثيق
+            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+            
+            // تحديث الواجهة بعد النجاح
+            userInfo.innerText = "أهلاً بك: " + auth.user.username;
+            btn.style.display = "none";
+            alert("تم تسجيل الدخول بنجاح!");
+            
+        } catch (err) {
+            console.error(err);
+            alert("خطأ: يرجى فتح الرابط من داخل تطبيق Pi Browser");
+            btn.innerText = "إعادة المحاولة";
+        }
     }
-}
+</script>
+
+</body>
+</html>
