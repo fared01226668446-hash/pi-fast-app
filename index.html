@@ -1,92 +1,38 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخدمات</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
-        .card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 90%;
-        }
-        .logo-circle {
-            width: 90px;
-            height: 90px;
-            background: linear-gradient(135deg, #673ab7, #512da8);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5rem;
-            margin: 0 auto 1.5rem;
-            font-weight: bold;
-        }
-        h2 { color: #333; margin-bottom: 0.5rem; font-size: 1.8rem; }
-        p { color: #666; margin-bottom: 2rem; line-height: 1.6; }
-        .btn {
-            background: linear-gradient(135deg, #673ab7, #512da8);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            width: 100%;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(103, 58, 183, 0.3);
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(103, 58, 183, 0.4);
-        }
-    </style>
-</head>
-<body>
+// استدعاء المكتبة
+const Pi = window.Pi;
 
-<div class="card">
-    <div class="logo-circle">F</div>
-    <h2>مكتب الفريد للخدمات</h2>
-    <p>مرحباً بك في تطبيقنا المتطور. نحن هنا لخدمتك وتقديم أفضل الحلول التقنية لك.</p>
-    <button class="btn" onclick="login()">تسجيل الدخول عبر Pi</button>
-</div>
+// تهيئة التطبيق - تأكد من استخدام sandbox: true للمرحلة التجريبية
+Pi.init({ version: "2.0", sandbox: true });
 
-<script>
-    const Pi = window.Pi;
-    // تم تفعيل sandbox هنا ليتمكن الزر من العمل في بيئة التجربة
-    Pi.init({ version: "2.0", sandbox: true }); 
+async function loginWithPi() {
+    const loginBtn = document.getElementById('login-btn');
+    
+    try {
+        // تغيير نص الزر أثناء التحميل
+        loginBtn.innerText = "جاري الاتصال...";
+        
+        const scopes = ['username', 'payments'];
+        
+        // دالة التعامل مع الدفعات المعلقة (متطلب أساسي لـ Pi)
+        function onIncompletePaymentFound(payment) {
+            console.log("Incomplete payment found", payment);
+        };
 
-    async function login() {
-        try {
-            const scopes = ['username', 'payments'];
-            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            alert("أهلاً بك يا " + auth.user.username);
-        } catch (err) {
-            console.error(err);
-            alert("تنبيه: افتح الرابط داخل Pi Browser وتأكد من تفعيل وضع المطور في المحفظة.");
-        }
+        // طلب التوثيق
+        const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+        
+        // عند النجاح
+        console.log("Success:", auth);
+        alert(`أهلاً بك يا ${auth.user.username} في تطبيق مكتب الفريد`);
+        
+        // يمكنك هنا توجيه المستخدم لصفحة خدمات الخرسانة
+        loginBtn.innerText = "تم تسجيل الدخول";
+        loginBtn.style.backgroundColor = "#4CAF50"; 
+
+    } catch (err) {
+        // في حال الخطأ أو فتح المتصفح من خارج Pi Browser
+        console.error(err);
+        alert("يرجى فتح التطبيق من داخل Pi Browser لتفعيل خدمات مكتب الفريد.");
+        loginBtn.innerText = "فشل الدخول - حاول مجدداً";
     }
-
-    function onIncompletePaymentFound(payment) {
-        // معالجة المدفوعات المعلقة
-    };
-</script>
-
-</body>
-</html>
+}
