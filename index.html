@@ -27,6 +27,7 @@
         Pi.init({ version: "2.0", sandbox: true });
         async function auth() {
             try {
+                document.getElementById('btn').innerText = "جاري الاتصال...";
                 const user = await Pi.authenticate(['username'], (p) => {});
                 document.getElementById('btn').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
