@@ -3,59 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخرسانة الجاهزة</title>
+    <title>مكتب الفريد للخدمات</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 50px; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .btn-pi { background-color: #6d28d9; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 10px; cursor: pointer; transition: 0.3s; }
-        .btn-pi:hover { background-color: #5b21b6; }
+        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 320px; }
+        .btn { background-color: #673ab7; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; }
+        .btn:disabled { background-color: #aaa; }
+        #content { display: none; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>مكتب الفريد للخدمات</h1>
-    <p>مرحباً بك في منصة خدمات الخرسانة الجاهزة</p>
-    
-    <button id="login-btn" class="btn-pi" onclick="login()">تسجيل الدخول عبر Pi</button>
-    
-    <div id="user-info" style="margin-top: 20px; font-weight: bold; color: #6d28d9;"></div>
-</div>
-
-<script>
-    // تهيئة Pi SDK
-    const Pi = window.Pi;
-    Pi.init({ version: "2.0", sandbox: true }); // استخدم sandbox: true لأنك على Testnet
-
-    async function login() {
-        const btn = document.getElementById('login-btn');
-        const userInfo = document.getElementById('user-info');
+    <div class="card">
+        <h2>مكتب الفريد للخدمات</h2>
+        <p>منصة خدمات الخرسانة الجاهزة</p>
         
-        try {
-            btn.innerText = "جاري التحقق...";
-            
-            const scopes = ['username', 'payments'];
-            
-            function onIncompletePaymentFound(payment) {
-                console.log("دفعة غير مكتملة:", payment);
-            };
+        <button id="auth-btn" class="btn" disabled>جاري التحقق...</button>
 
-            // عملية التوثيق
-            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            
-            // تحديث الواجهة بعد النجاح
-            userInfo.innerText = "أهلاً بك: " + auth.user.username;
-            btn.style.display = "none";
-            alert("تم تسجيل الدخول بنجاح!");
-            
-        } catch (err) {
-            console.error(err);
-            alert("خطأ: يرجى فتح الرابط من داخل تطبيق Pi Browser");
-            btn.innerText = "إعادة المحاولة";
+        <div id="content">
+            <h4 style="color: green;">تم الاتصال بنجاح!</h4>
+            <p>مرحباً بك في لوحة التحكم</p>
+            <button class="btn" onclick="alert('طلب خرسانة')">طلب خدمة جديدة</button>
+        </div>
+    </div>
+
+    <script>
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: true });
+
+        async function startApp() {
+            try {
+                // تنفيذ عملية التحقق
+                const user = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+                
+                // إذا نجح التحقق، نخفي الزر ونظهر المحتوى
+                document.getElementById('auth-btn').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                console.log("Welcome: " + user.username);
+            } catch (err) {
+                document.getElementById('auth-btn').innerText = "خطأ في الاتصال - أعد المحاولة";
+                document.getElementById('auth-btn').disabled = false;
+                document.getElementById('auth-btn').onclick = () => location.reload();
+            }
         }
-    }
-</script>
 
+        function onIncompletePaymentFound(payment) { /* للتعامل مع المدفوعات لاحقاً */ }
+
+        // تشغيل الدالة عند فتح الصفحة
+        window.onload = startApp;
+    </script>
 </body>
 </html>
