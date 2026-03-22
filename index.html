@@ -1,32 +1,39 @@
-const Pi = window.Pi;
-// جرب تغيير sandbox من true إلى false إذا لم يعمل، والعكس
-Pi.init({ version: "2.0", sandbox: true }); 
-
-async function startApp() {
-    try {
-        console.log("بدء التحقق...");
-        const user = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
-        
-        // إذا نجح التحقق، سيتم إخفاء الزر الرمادي وإظهار المحتوى
-        document.getElementById('auth-btn').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
-    } catch (err) {
-        console.error("خطأ في التحقق:", err);
-        // إظهار الخطأ على الزر نفسه لنعرف السبب
-        document.getElementById('auth-btn').innerText = "خطأ: " + err.message;
-        document.getElementById('auth-btn').disabled = false;
-    }
-}
-
-function onIncompletePaymentFound(payment) {
-    console.log("Incomplete payment:", payment);
-    // ضروري جداً إخبار الشبكة بأنك استلمت الدفعة
-    return Pi.createPayment(payment, {
-        onReadyForServerApproval: (paymentId) => { /* اتركها فارغة للتجربة */ },
-        onReadyForServerCompletion: (paymentId, txid) => { /* اتركها فارغة للتجربة */ },
-        onCancel: (paymentId) => { },
-        onError: (error, payment) => { }
-    });
-};
-
-window.onload = startApp;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مكتب الفريد للخدمات</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 15px; display: inline-block; width: 85%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn { background: #673ab7; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; margin-top: 20px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>مكتب الفريد للخدمات</h2>
+        <p>منصة خدمات الخرسانة الجاهزة</p>
+        <button id="btn" class="btn" disabled>جاري التحقق...</button>
+        <div id="content" style="display:none;">
+            <h3 style="color:green;">تم الدخول بنجاح!</h3>
+            <p>مرحباً بك في خدمات أكتوبر والزايد</p>
+        </div>
+    </div>
+    <script>
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: true });
+        async function auth() {
+            try {
+                const user = await Pi.authenticate(['username', 'payments'], (p) => {});
+                document.getElementById('btn').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (e) {
+                document.getElementById('btn').innerText = "خطأ: تأكد من إعدادات الرابط";
+                document.getElementById('btn').disabled = false;
+            }
+        }
+        window.onload = auth;
+    </script>
+</body>
+</html>
