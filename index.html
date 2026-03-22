@@ -6,11 +6,10 @@
     <title>الفريد للخرسانة الجاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #f4f4f9; color: #333; }
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #f4f4f9; }
         .card { background: white; padding: 25px; border-radius: 20px; display: inline-block; width: 85%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .btn { background: #673ab7; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; margin-top: 20px; font-size: 16px; font-weight: bold; }
-        .btn:disabled { background: #9e9e9e; cursor: not-allowed; }
-        #content { display: none; margin-top: 20px; padding: 10px; border: 1px solid #4CAF50; border-radius: 10px; background: #e8f5e9; }
+        .btn { background: #673ab7; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; margin-top: 20px; font-weight: bold; }
+        #content { display: none; margin-top: 20px; background: #e8f5e9; padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -19,25 +18,24 @@
         <p>خدمات مدينة 6 أكتوبر والشيخ زايد</p>
         <button id="btn" class="btn" disabled>جاري التحقق من الحساب...</button>
         <div id="content">
-            <h3 style="color: #2e7d32;">تم تسجيل الدخول بنجاح!</h3>
-            <p>مرحباً بك في منصة الفريد للخدمات</p>
-            <button class="btn" onclick="alert('سيتم تفعيل الطلبات قريباً')">طلب خرسانة جاهزة</button>
+            <h3 style="color: green;">تم التحقق بنجاح!</h3>
+            <p>مرحباً بك في منصة الفريد</p>
+            <button class="btn" onclick="window.location.href='https://wa.me/201226668446'">اطلب الآن عبر واتساب</button>
         </div>
     </div>
     <script>
         const Pi = window.Pi;
-        // ملاحظة: بما أن تطبيقك في الصورة Testnet، يجب أن تكون sandbox: true
+        // جرب تغيير sandbox لـ false لو كنت مفعل الـ Mainnet في المحفظة
         Pi.init({ version: "2.0", sandbox: true });
         async function auth() {
             try {
+                // سطر المصادقة المختصر
                 const user = await Pi.authenticate(['username'], (p) => {});
                 document.getElementById('btn').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
-                console.log("User Logged In: " + user.username);
             } catch (e) {
-                document.getElementById('btn').innerText = "خطأ: " + e.message;
+                document.getElementById('btn').innerText = "خطأ في الاتصال بالشبكة";
                 document.getElementById('btn').disabled = false;
-                document.getElementById('btn').onclick = () => location.reload();
             }
         }
         window.onload = auth;
