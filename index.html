@@ -1,56 +1,32 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخدمات</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 320px; }
-        .btn { background-color: #673ab7; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; }
-        .btn:disabled { background-color: #aaa; }
-        #content { display: none; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>مكتب الفريد للخدمات</h2>
-        <p>منصة خدمات الخرسانة الجاهزة</p>
+const Pi = window.Pi;
+// جرب تغيير sandbox من true إلى false إذا لم يعمل، والعكس
+Pi.init({ version: "2.0", sandbox: true }); 
+
+async function startApp() {
+    try {
+        console.log("بدء التحقق...");
+        const user = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
         
-        <button id="auth-btn" class="btn" disabled>جاري التحقق...</button>
+        // إذا نجح التحقق، سيتم إخفاء الزر الرمادي وإظهار المحتوى
+        document.getElementById('auth-btn').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+    } catch (err) {
+        console.error("خطأ في التحقق:", err);
+        // إظهار الخطأ على الزر نفسه لنعرف السبب
+        document.getElementById('auth-btn').innerText = "خطأ: " + err.message;
+        document.getElementById('auth-btn').disabled = false;
+    }
+}
 
-        <div id="content">
-            <h4 style="color: green;">تم الاتصال بنجاح!</h4>
-            <p>مرحباً بك في لوحة التحكم</p>
-            <button class="btn" onclick="alert('طلب خرسانة')">طلب خدمة جديدة</button>
-        </div>
-    </div>
+function onIncompletePaymentFound(payment) {
+    console.log("Incomplete payment:", payment);
+    // ضروري جداً إخبار الشبكة بأنك استلمت الدفعة
+    return Pi.createPayment(payment, {
+        onReadyForServerApproval: (paymentId) => { /* اتركها فارغة للتجربة */ },
+        onReadyForServerCompletion: (paymentId, txid) => { /* اتركها فارغة للتجربة */ },
+        onCancel: (paymentId) => { },
+        onError: (error, payment) => { }
+    });
+};
 
-    <script>
-        const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true });
-
-        async function startApp() {
-            try {
-                // تنفيذ عملية التحقق
-                const user = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
-                
-                // إذا نجح التحقق، نخفي الزر ونظهر المحتوى
-                document.getElementById('auth-btn').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                console.log("Welcome: " + user.username);
-            } catch (err) {
-                document.getElementById('auth-btn').innerText = "خطأ في الاتصال - أعد المحاولة";
-                document.getElementById('auth-btn').disabled = false;
-                document.getElementById('auth-btn').onclick = () => location.reload();
-            }
-        }
-
-        function onIncompletePaymentFound(payment) { /* للتعامل مع المدفوعات لاحقاً */ }
-
-        // تشغيل الدالة عند فتح الصفحة
-        window.onload = startApp;
-    </script>
-</body>
-</html>
+window.onload = startApp;
