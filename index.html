@@ -6,15 +6,11 @@
     <title>الفريد للخرسانة الجاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
-        h2 { color: #333; margin-bottom: 10px; }
-        p { color: #666; margin-bottom: 20px; }
-        .btn { background: #673ab7; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; transition: 0.3s; margin-top: 10px; }
-        .btn:hover { background: #512da8; }
-        #content { display: none; border-top: 2px solid #eee; pt: 20px; }
-        .status { color: #2e7d32; font-weight: bold; margin-top: 10px; }
-        .payment-section { margin-top: 20px; padding: 15px; background: #f0ebf7; border-radius: 10px; }
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; }
+        .btn { background: #673ab7; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 18px; width: 100%; margin-top: 20px; }
+        #content { display: none; }
+        .success { color: #2e7d32; font-weight: bold; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -22,73 +18,71 @@
 <div class="card">
     <h2>الفريد للخرسانة الجاهزة</h2>
     <p>خدمات مدينة 6 أكتوبر والشيخ زايد</p>
-    
-    <button id="btn-auth" class="btn" onclick="auth()">دخول عبر Pi Network</button>
+
+    <button id="btn-auth" class="btn" onclick="startAuth()">دخول عبر Pi Network</button>
 
     <div id="content">
-        <p class="status">✅ تم التحقق بنجاح</p>
-        <p id="user-welcome">مرحباً بك في منصة الفريد</p>
-        
-        <div class="payment-section">
-            <p>طلب معاينة موقع (تجريبي)</p>
-            <button class="btn" style="background: #ef6c00;" onclick="transferPi()">دفع 1 Test-Pi</button>
+        <p class="success">✅ تم الاتصال بنجاح</p>
+        <h3 id="user-name">مرحباً بك</h3>
+        <div style="background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px;">
+            <p>طلب خدمة معاينة</p>
+            <button class="btn" style="background: #ef6c00;" onclick="payPi()">دفع 1 Test-Pi</button>
         </div>
-
-        <button class="btn" style="background: #666; margin-top: 20px;" onclick="window.location.reload()">تسجيل خروج</button>
     </div>
 </div>
 
 <script>
     const Pi = window.Pi;
-    // تهيئة التطبيق - Sandbox: true تعني العمل على شبكة التست نت
+    
+    // إعدادات البداية - تأكد أن sandbox تعني شبكة التجربة
     Pi.init({ version: "2.0", sandbox: true });
 
-    async function auth() {
-        const btn = document.getElementById('btn-auth');
-        btn.innerText = "جاري الاتصال...";
-        
+    async function startAuth() {
+        const authBtn = document.getElementById('btn-auth');
+        authBtn.innerText = "جاري التحقق من الحساب...";
+        authBtn.disabled = true;
+
         try {
             const scopes = ['username', 'payments'];
             
-            // دالة ضرورية للتعامل مع أي مدفوعات معلقة
+            // هذه الدالة ضرورية جداً لاستكمال أي عملية دفع معلقة
             function onIncompletePaymentFound(payment) {
-                console.log("هناك عملية دفع لم تكتمل:", payment);
+                console.log("Incomplete payment:", payment);
             };
 
+            // بدء عملية تسجيل الدخول
             const user = await Pi.authenticate(scopes, onIncompletePaymentFound);
             
-            // تحديث الواجهة عند النجاح
+            // إذا نجحنا في الوصول لهنا، نغير الواجهة
             document.getElementById('btn-auth').style.display = 'none';
             document.getElementById('content').style.display = 'block';
-            document.getElementById('user-welcome').innerText = "مرحباً بك يا " + user.user.username;
-            
-        } catch (e) {
-            alert("فشل الاتصال: تأكد من فتح الرابط داخل Pi Browser");
-            btn.innerText = "إعادة المحاولة";
+            document.getElementById('user-name').innerText = "مرحباً بك يا " + user.user.username;
+
+        } catch (err) {
+            alert("فشل الاتصال! تأكد من فتح الرابط داخل Pi Browser وليس متصفح عادي.");
+            authBtn.innerText = "إعادة المحاولة";
+            authBtn.disabled = false;
         }
     }
 
-    // كود عملية الدفع (Payment Flow)
-    async function transferPi() {
+    async function payPi() {
         try {
             const payment = await Pi.createPayment({
                 amount: 1,
-                memo: "رسوم معاينة موقع - مكتب الفريد",
-                metadata: { serviceType: "consultation" },
+                memo: "رسوم معاينة - مكتب الفريد",
+                metadata: { type: "survey" },
             }, {
-                onReadyForServerApproval: function(paymentId) {
-                    // في المرحلة الحالية (Testnet) يمكنك إظهار رسالة نجاح مبدئية
-                    console.log("عملية الدفع جاهزة للموافقة:", paymentId);
-                    alert("تم إرسال طلب الدفع للمحفظة، يرجى التأكيد داخل المحفظة.");
+                onReadyForServerApproval: (paymentId) => {
+                    alert("المعاملة جاهزة، يرجى التأكيد في محفظتك.");
                 },
-                onReadyForServerCompletion: function(paymentId, txid) {
-                    alert("تمت العملية بنجاح! رقم المعاملة: " + txid);
+                onReadyForServerCompletion: (paymentId, txid) => {
+                    alert("تم الدفع بنجاح! رقم العملية: " + txid);
                 },
-                onCancel: function(paymentId) { console.log("تم إلغاء الدفع"); },
-                onError: function(error, payment) { console.error("خطأ في الدفع:", error); }
+                onCancel: (paymentId) => { console.log("تم الإلغاء"); },
+                onError: (error, payment) => { alert("خطأ في الدفع: " + error.message); }
             });
         } catch (e) {
-            alert("خطأ في تنفيذ عملية الدفع: " + e.message);
+            alert("تعذر فتح المحفظة: " + e.message);
         }
     }
 </script>
