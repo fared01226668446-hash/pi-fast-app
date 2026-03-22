@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الفريد للخرسانة الجاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
@@ -24,19 +24,18 @@
     </div>
     <script>
         const Pi = window.Pi;
-        // جرب تغيير sandbox إلى false لو كنت تستخدم المحفظة الحقيقية
-        Pi.init({ version: "2.0", sandbox: true });
+        Pi.init({ version: "2.0", sandbox: true }); 
         async function auth() {
             try {
-                // محاولة الاتصال
+                // سطر المصادقة الأساسي
                 const user = await Pi.authenticate(['username'], (p) => {});
                 document.getElementById('btn').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
             } catch (e) {
-                // إذا فشل، سيظهر الزر لإعادة المحاولة مع توضيح الخطأ
-                document.getElementById('btn').innerText = "إعادة المحاولة (خطأ في الربط)";
+                // لو فشل هيظهر زرار يدوي عشان يجبر المتصفح يفتح
+                document.getElementById('btn').innerText = "اضغط هنا لتأكيد الدخول";
                 document.getElementById('btn').disabled = false;
-                document.getElementById('btn').onclick = () => location.reload();
+                document.getElementById('btn').onclick = () => auth();
             }
         }
         window.onload = auth;
