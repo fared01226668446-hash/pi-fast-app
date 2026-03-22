@@ -15,24 +15,22 @@
     <div class="card">
         <h2>الفريد للخرسانة الجاهزة</h2>
         <p>خدمات مدينة 6 أكتوبر والشيخ زايد</p>
-        <button id="btn" class="btn" disabled>جاري التحقق من الحساب...</button>
+        <button id="btn" class="btn" disabled>جاري التحقق...</button>
         <div id="content">
-            <h3 style="color: #2e7d32;">تم التحقق بنجاح!</h3>
-            <p>مرحباً بك في منصة الفريد</p>
-            <button class="btn" onclick="window.location.href='https://wa.me/201226668446'">اطلب الآن عبر واتساب</button>
+            <h3 style="color: #2e7d32;">أهلاً بك يا أحمد!</h3>
+            <p>تم تفعيل المنصة بنجاح</p>
+            <button class="btn" onclick="window.location.href='https://wa.me/201226668446'">اطلب عبر واتساب</button>
         </div>
     </div>
     <script>
         const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true }); 
+        Pi.init({ version: "2.0", sandbox: true });
         async function auth() {
             try {
-                // سطر المصادقة الأساسي
                 const user = await Pi.authenticate(['username'], (p) => {});
                 document.getElementById('btn').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
             } catch (e) {
-                // لو فشل هيظهر زرار يدوي عشان يجبر المتصفح يفتح
                 document.getElementById('btn').innerText = "اضغط هنا لتأكيد الدخول";
                 document.getElementById('btn').disabled = false;
                 document.getElementById('btn').onclick = () => auth();
