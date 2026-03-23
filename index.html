@@ -1,91 +1,46 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الفريد للخرسانة الجاهزة</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; }
-        .btn { background: #673ab7; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 18px; width: 100%; margin-top: 20px; }
-        #content { display: none; }
-        .success { color: #2e7d32; font-weight: bold; font-size: 20px; }
-    </style>
-</head>
-<body>
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-<div class="card">
-    <h2>الفريد للخرسانة الجاهزة</h2>
-    <p>خدمات مدينة 6 أكتوبر والشيخ زايد</p>
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-    <button id="btn-auth" class="btn" onclick="startAuth()">دخول عبر Pi Network</button>
-
-    <div id="content">
-        <p class="success">✅ تم الاتصال بنجاح</p>
-        <h3 id="user-name">مرحباً بك</h3>
-        <div style="background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px;">
-            <p>طلب خدمة معاينة</p>
-            <button class="btn" style="background: #ef6c00;" onclick="payPi()">دفع 1 Test-Pi</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const Pi = window.Pi;
+contract AlFareedOfficeToken is ERC20, Ownable {
     
-    // إعدادات البداية - تأكد أن sandbox تعني شبكة التجربة
-    Pi.init({ version: "2.0", sandbox: true });
+    // نسبة المكافأة الافتراضية (مثلاً 1% من قيمة المعاملة)
+    uint256 public rewardRate = 1; 
 
-    async function startAuth() {
-        const authBtn = document.getElementById('btn-auth');
-        authBtn.innerText = "جاري التحقق من الحساب...";
-        authBtn.disabled = true;
+    // رسم تعبيري لمناطق الخدمة (6 أكتوبر والشيخ زايد) لتوثيق النطاق الجغرافي
+    string public constant SERVICE_AREA = "6th of October & Sheikh Zayed";
 
-        try {
-            const scopes = ['username', 'payments'];
-            
-            // هذه الدالة ضرورية جداً لاستكمال أي عملية دفع معلقة
-            function onIncompletePaymentFound(payment) {
-                console.log("Incomplete payment:", payment);
-            };
+    event ServicesRewardSent(address indexed customer, uint256 amount);
 
-            // بدء عملية تسجيل الدخول
-            const user = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            
-            // إذا نجحنا في الوصول لهنا، نغير الواجهة
-            document.getElementById('btn-auth').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-            document.getElementById('user-name').innerText = "مرحباً بك يا " + user.user.username;
-
-        } catch (err) {
-            alert("فشل الاتصال! تأكد من فتح الرابط داخل Pi Browser وليس متصفح عادي.");
-            authBtn.innerText = "إعادة المحاولة";
-            authBtn.disabled = false;
-        }
+    constructor() ERC20("Al-Fareed Office Token", "FARID") Ownable(msg.sender) {
+        // صك كمية أولية للمالك (أو لحوض السيولة وفقاً لـ PiRC1)
+        _mint(msg.sender, 1000000 * 10 ** decimals());
     }
 
-    async function payPi() {
-        try {
-            const payment = await Pi.createPayment({
-                amount: 1,
-                memo: "رسوم معاينة - مكتب الفريد",
-                metadata: { type: "survey" },
-            }, {
-                onReadyForServerApproval: (paymentId) => {
-                    alert("المعاملة جاهزة، يرجى التأكيد في محفظتك.");
-                },
-                onReadyForServerCompletion: (paymentId, txid) => {
-                    alert("تم الدفع بنجاح! رقم العملية: " + txid);
-                },
-                onCancel: (paymentId) => { console.log("تم الإلغاء"); },
-                onError: (error, payment) => { alert("خطأ في الدفع: " + error.message); }
-            });
-        } catch (e) {
-            alert("تعذر فتح المحفظة: " + e.message);
-        }
-    }
-</script>
+    // وظيفة تسجيل طلب خدمة ومنح مكافأة (تطبيقاً لمبدأ المنفعة في PiRC1)
+    function completeService(address customer, uint256 orderValue) public onlyOwner {
+        require(customer != address(0), "Invalid customer address");
+        
+        uint256 rewardAmount = (orderValue * rewardRate) / 100;
+        
+        // التحقق من توفر رصيد في العقد للمكافآت
+        require(balanceOf(owner()) >= rewardAmount, "Insufficient rewards in treasury");
 
-</body>
-</html>
+        _transfer(owner(), customer, rewardAmount);
+        
+        emit ServicesRewardSent(customer, rewardAmount);
+    }
+
+    // تحديث نسبة المكافآت حسب العروض الموسمية
+    function updateRewardRate(uint256 newRate) public onlyOwner {
+        rewardRate = newRate;
+    }
+
+    // وظيفة تسمح للمستخدمين بحرق (Burn) التوكنز مقابل خصم على الخدمات الورقية أو الخرسانة
+    function redeemForDiscount(uint256 amount) public {
+        _burn(msg.sender, amount);
+        // هنا يتم تسجيل الخصم في قاعدة بيانات المكتب الخارجية
+    }
+}
