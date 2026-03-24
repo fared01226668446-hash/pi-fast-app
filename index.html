@@ -7,11 +7,13 @@
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         :root { --main: #673ab7; --gold: #ffa500; }
-        body { background: var(--main); color: white; font-family: Arial; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center; }
-        .card { background: rgba(255,255,255,0.15); padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.2); }
-        input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin: 10px 0; box-sizing: border-box; }
-        .btn { background: var(--gold); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .status { background: white; color: #333; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; }
+        body { background: var(--main); color: white; font-family: Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center; }
+        .card { background: rgba(255,255,255,0.15); padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin: 10px 0; box-sizing: border-box; font-size: 16px; }
+        .btn { background: var(--gold); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
+        .status { background: white; color: #333; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
+        #order-form { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 20px; }
     </style>
 </head>
 <body>
@@ -19,12 +21,12 @@
 <div class="card">
     <h2>الفريد للخرسانة الجاهزة</h2>
     <p>أكتوبر - الشيخ زايد - حدائق أكتوبر</p>
-    <div id="status" class="status">في انتظار دخول Pi...</div>
+    <div id="status" class="status">بإنتظار تسجيل الدخول عبر Pi...</div>
 
     <div id="order-form" style="display:none;">
-        <input type="number" id="meters" placeholder="كمية الخرسانة (متر مكعب)">
-        <input type="text" id="location" placeholder="العنوان بالتفصيل">
-        <button class="btn" onclick="sendOrder()">إرسال الطلب عبر واتساب</button>
+        <input type="number" id="meters" placeholder="الكمية المطلوبة (متر مكعب)">
+        <input type="text" id="location" placeholder="العنوان بالتفصيل (أكتوبر/زايد)">
+        <button class="btn" onclick="sendOrder()">تأكيد الطلب عبر واتساب</button>
     </div>
 
     <button id="login-btn" class="btn" onclick="login()">دخول وطلب خرسانة</button>
@@ -32,30 +34,45 @@
 
 <script>
     const Pi = window.Pi;
+    // تم ضبط الإعدادات لتتوافق مع الرابط الجديد الخاص بك
     Pi.init({ version: "2.0", sandbox: false });
 
     async function login() {
         try {
-            const auth = await Pi.authenticate(['username', 'payments'], (p) => console.log(p));
-            document.getElementById('status').innerText = "أهلاً بك: " + auth.user.username;
+            const scopes = ['username', 'payments'];
+            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+            document.getElementById('status').innerText = "مرحباً بك: " + auth.user.username;
+            document.getElementById('status').style.color = "green";
             document.getElementById('login-btn').style.display = "none";
             document.getElementById('order-form').style.display = "block";
-        } catch (err) { alert("افتح التطبيق من Pi Browser"); }
+        } catch (err) {
+            document.getElementById('status').innerText = "خطأ: يرجى الفتح من Pi Browser";
+            console.error(err);
+        }
+    }
+
+    function onIncompletePaymentFound(payment) {
+        console.log("هناك مدفوعات معلقة", payment);
     }
 
     function sendOrder() {
         const m = document.getElementById('meters').value;
         const loc = document.getElementById('location').value;
-        if(!m || !loc) return alert("اكمل البيانات");
+        if(!m || !loc) return alert("يرجى إكمال البيانات المطلوبة");
         
-        // --- ضع رقمك الجديد هنا مكان الأصفار ---
-        const myPhone = "201000000000"; 
+        // الرقم فارغ حالياً بناءً على طلبك - يمكنك وضعه هنا عند الرغبة في التشغيل
+        const myPhone = ""; 
         
-        const msg = `طلب خرسانة جديد:%0Aالكمية: ${m} متر%0Aالموقع: ${loc}`;
+        if (!myPhone) {
+            alert("خدمة الواتساب قيد التجهيز حالياً. سيتم التواصل معك قريباً.");
+            return;
+        }
+
+        const msg = `طلب خرسانة جديد من تطبيق الفريد:%0Aالكمية: ${m} متر%0Aالموقع: ${loc}`;
         window.open(`https://wa.me/${myPhone}?text=${msg}`, '_blank');
     }
 
-    // حل مشكلة حذف الشرطة المائلة وتجنب الـ 404
+    // معالجة ذكية للرابط لضمان فتح التطبيق حتى مع أخطاء الـ 404
     if (window.location.pathname.includes('404.html')) {
         window.history.replaceState(null, null, '/pi-fast-app/');
     }
