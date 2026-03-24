@@ -9,15 +9,13 @@
     
     <style>
         :root {
-            --primary-color: #673ab7;
-            --accent-color: #ffa500;
-            --text-light: #ffffff;
+            --main-bg: #673ab7;
+            --accent: #ffa500;
         }
-
         body {
-            background-color: var(--primary-color);
-            color: var(--text-light);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--main-bg);
+            color: white;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -26,101 +24,91 @@
             min-height: 100vh;
             text-align: center;
         }
-
-        .container {
+        .app-container {
             width: 90%;
-            max-width: 500px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
         }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .status-box {
+        .status-badge {
             background: #fff;
             color: #333;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin: 20px 0;
+            font-size: 14px;
             font-weight: bold;
         }
-
-        .btn {
-            background-color: var(--accent-color);
+        .btn-order {
+            background: var(--accent);
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
+            padding: 18px;
             width: 100%;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-
-        .btn:active {
-            transform: scale(0.95);
-        }
-
-        .footer {
-            margin-top: 30px;
-            font-size: 12px;
-            opacity: 0.8;
-        }
+        .footer-text { margin-top: 20px; font-size: 10px; opacity: 0.7; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <img src="https://via.placeholder.com/80/ffa500/ffffff?text=F" alt="Logo" style="border-radius: 50%; margin-bottom: 15px;">
-        <h1>مكتب الفريد للخرسانة الجاهزة</h1>
-        <p>خدمات توريد الخرسانة في أكتوبر والشيخ زايد</p>
+<div class="app-container">
+    <h2>الفريد للخرسانة الجاهزة</h2>
+    <p>تغطية كاملة: أكتوبر - زايد - حدائق أكتوبر</p>
 
-        <div id="status" class="status-box">جاري الاتصال بـ Pi Network...</div>
+    <div id="status" class="status-badge">في انتظار تسجيل دخول Pi...</div>
 
-        <button class="btn" onclick="loginPi()">تسجيل الدخول عبر Pi</button>
-        
-        <div class="footer">
-            خدمة معتمدة لعملاء Pi Network © 2026
-        </div>
+    <button class="btn-order" onclick="login()">دخول وطلب خرسانة</button>
+
+    <div class="footer-text">
+        App ID المتصل: <br>
+        <span style="font-family: monospace; color: #ffeb3b;">rgd3i5ncoo7wskuzewwv41t7bj0mccpqwniiq7mhifmzewjv9tdu8c9cbtz8nrne</span>
     </div>
+</div>
 
-    <script>
-        // تهيئة Pi SDK
-        const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: false });
+<script>
+    // تهيئة Pi SDK باستخدام App ID الخاص بك
+    const Pi = window.Pi;
+    Pi.init({ version: "2.0", sandbox: false });
 
-        async function loginPi() {
-            try {
-                const scopes = ['username', 'payments'];
-                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                document.getElementById('status').innerText = "مرحباً: " + auth.user.username;
-                document.getElementById('status').style.color = "green";
-            } catch (err) {
-                document.getElementById('status').innerText = "خطأ في الاتصال: " + err.message;
-                document.getElementById('status').style.color = "red";
-            }
+    async function login() {
+        try {
+            document.getElementById('status').innerText = "جاري الاتصال بحسابك...";
+            
+            // استخدام الـ App ID لعمل المصادقة
+            const scopes = ['username', 'payments'];
+            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+            
+            document.getElementById('status').innerText = "أهلاً بك: " + auth.user.username;
+            document.getElementById('status').style.backgroundColor = "#4caf50";
+            document.getElementById('status').style.color = "white";
+            
+            console.log("تم الربط بنجاح للتطبيق: rgd3i5ncoo...");
+        } catch (err) {
+            document.getElementById('status').innerText = "افتح التطبيق من داخل Pi Browser";
+            document.getElementById('status').style.backgroundColor = "#f44336";
+            document.getElementById('status').style.color = "white";
         }
+    }
 
-        function onIncompletePaymentFound(payment) {
-            console.log("هناك عملية دفع معلقة", payment);
+    function onIncompletePaymentFound(payment) {
+        console.log("Incomplete payment:", payment);
+    }
+
+    // حل مشكلة 404 والشرطة المائلة
+    (function() {
+        if (window.location.pathname.includes('404.html')) {
+            window.history.replaceState(null, null, '/pi-fast-app/');
         }
+    })();
+</script>
 
-        // كود معالجة المسارات (لحل مشكلة 404 داخلياً)
-        (function() {
-            if (window.location.pathname !== '/' && !window.location.pathname.includes('index.html')) {
-                console.log("إعادة توجيه المسار...");
-                window.history.replaceState(null, null, '/');
-            }
-        })();
-    </script>
 </body>
 </html>
