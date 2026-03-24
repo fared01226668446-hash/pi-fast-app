@@ -1,4 +1,3 @@
-<script>
     const statusBox = document.getElementById('statusBox');
     const authBtn = document.getElementById('authBtn');
     const userInfo = document.getElementById('userInfo');
@@ -10,25 +9,24 @@
     // 1. تهيئة الـ SDK
     try {
         Pi.init({ version: "2.0", sandbox: true });
-        statusBox.innerText = "متصل ببيئة الاختبار بنجاح";
+        statusBox.innerText = "متصل ببيئة Pi بنجاح. يرجى تسجيل الدخول.";
         statusBox.className = "status status-success";
         authBtn.style.display = "block";
     } catch (e) {
-        statusBox.innerText = "خطأ في الاتصال بالشبكة";
+        statusBox.innerText = "خطأ في تحميل الشبكة";
         statusBox.className = "status status-error";
     }
 
     // 2. وظيفة تسجيل الدخول
     authBtn.onclick = async function() {
-        statusBox.innerText = "جاري التحقق من المحفظة...";
+        statusBox.innerText = "...جاري التحقق من المحفظة";
         statusBox.className = "status status-wait";
 
         try {
             const scopes = ['username', 'payments', 'wallet_address'];
 
-            // دالة التعامل مع المدفوعات المعلقة (ضرورية)
             function onIncompletePaymentFound(payment) {
-                console.log("هناك مدفوعة معلقة:", payment);
+                console.log("مدفوعة معلقة", payment);
             };
 
             const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
@@ -41,11 +39,9 @@
             userName.innerText = auth.user.username;
             userAddr.innerText = auth.user.uid.substring(0, 10) + "..."; 
 
-            console.log("تم تسجيل الدخول بنجاح", auth);
         } catch (error) {
-            statusBox.innerText = "يرجى الموافقة على الأذونات في محفظتك";
+            statusBox.innerText = "يرجى الموافقة على الأذونات";
             statusBox.className = "status status-error";
             console.error(error);
         }
     };
-</script>
