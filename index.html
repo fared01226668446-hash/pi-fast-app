@@ -3,96 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخرسانة الجاهزة</title>
+    <title>مكتب الفريد للخرسانة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root { --pi-purple: #673ab7; --bg-overlay: rgba(0, 0, 0, 0.7); }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        
-        .main-container {
-            background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('1000023962.jpg');
-            background-size: cover; background-position: center;
-            height: 100vh; display: flex; justify-content: center; align-items: center;
-        }
-
-        .card {
-            background: white; padding: 40px 20px; border-radius: 30px;
-            text-align: center; width: 85%; max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-
-        .profile-img {
-            width: 120px; height: 120px; margin: 0 auto 15px;
-            border: 4px solid var(--pi-purple); border-radius: 50%;
-            overflow: hidden; background: #f0f0f0;
-        }
-
-        .profile-img img { width: 100%; height: 100%; object-fit: cover; }
-
-        h1 { font-size: 1.6rem; color: #333; margin: 5px 0; }
-        p { color: #666; font-size: 1rem; margin-bottom: 30px; }
-
-        .btn-login {
-            background: var(--pi-purple); color: white; border: none;
-            padding: 16px; border-radius: 15px; width: 100%;
-            font-size: 1.1rem; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-
-        .loader {
-            display: none; width: 20px; height: 20px;
-            border: 3px solid #ffffff66; border-top: 3px solid #fff;
-            border-radius: 50%; animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        body { background: #673ab7; color: white; font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { text-align: center; background: white; color: #333; padding: 40px; border-radius: 20px; width: 80%; max-width: 400px; }
+        .btn { background: #ffa500; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body>
 
-<div class="main-container">
-    <div class="card">
-        <div class="profile-img">
-            <img src="1000023961.jpg" alt="الفريد">
-        </div>
-        <h1>مكتب الفريد للخدمات</h1>
-        <p>توريد خرسانة جاهزة - أكتوبر وزايد</p>
-
-        <button class="btn-login" id="loginBtn" onclick="initiateLogin()">
-            <div class="loader" id="spinner"></div>
-            <span id="btnText">دخول بواسطة Pi Network</span>
-        </button>
-    </div>
+<div class="container">
+    <h2>مكتب الفريد للخدمات</h2>
+    <p>توريد خرسانة جاهزة - أكتوبر وزايد</p>
+    <button class="btn" id="startBtn" onclick="runApp()">دخول التطبيق الآن</button>
+    <p id="msg" style="font-size: 12px; color: #666; margin-top: 10px;"></p>
 </div>
 
 <script>
-    // تهيئة التطبيق
     const Pi = window.Pi;
     Pi.init({ version: "2.0", sandbox: false });
 
-    async function initiateLogin() {
-        const btn = document.getElementById('loginBtn');
-        const spinner = document.getElementById('spinner');
-        const text = document.getElementById('btnText');
-
+    async function runApp() {
+        const btn = document.getElementById('startBtn');
+        const msg = document.getElementById('msg');
+        
         btn.disabled = true;
-        spinner.style.display = 'block';
-        text.innerText = 'جاري تسجيل الدخول...';
+        btn.innerText = "جاري التشغيل...";
+        msg.innerText = "يتم الاتصال بشبكة Pi...";
+
+        // مؤقت إجباري: إذا لم يستجب Pi خلال 4 ثوانٍ، افتح الصفحة التالية فوراً
+        const forceStart = setTimeout(() => {
+            window.location.href = "order.html";
+        }, 4000);
 
         try {
-            // طلب تسجيل الدخول من شبكة Pi
-            const scopes = ['username', 'payments'];
-            const auth = await Pi.authenticate(scopes, (payment) => {
-                console.log("Incomplete payment:", payment);
-            });
-            
-            // في حال النجاح
-            console.log("Welcome " + auth.user.username);
-            window.location.href = "order.html"; 
-
-        } catch (error) {
-            console.error(error);
-            // إذا تعطل الدخول بسبب الرابط أو المحفظة
-            alert("مرحباً بك في مكتب الفريد! جاري نقلك لصفحة الطلبات للمعاينة.");
+            const scopes = ['username'];
+            await Pi.authenticate(scopes, (p) => {});
+            clearTimeout(forceStart); // إلغاء المؤقت إذا نجح الاتصال بسرعة
+            window.location.href = "order.html";
+        } catch (err) {
+            // في حال وجود أي خطأ، افتح التطبيق كزائر
             window.location.href = "order.html";
         }
     }
