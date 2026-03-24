@@ -3,21 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الفريد للخرسانة</title>
+    <title>الفريد للخرسانة الجاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        .logo { width: 120px; height: 120px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #5e35b1; }
-        button { background: #5e35b1; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; width: 100%; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; text-align: center; padding: 20px; }
+        .card { background: white; max-width: 400px; margin: auto; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .profile-img { width: 150px; height: 150px; border-radius: 50%; border: 5px solid #5e35b1; margin-bottom: 20px; }
+        h1 { color: #5e35b1; margin-bottom: 10px; }
+        .btn-pi { background: #5e35b1; color: white; border: none; padding: 18px; border-radius: 15px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <img src="https://www.w3schools.com/howto/img_avatar.png" class="logo" alt="الفريد">
-        <h1>مكتب الفريد للخدمات</h1>
-        <p>توريد خرسانة جاهزة - أكتوبر وزايد</p>
-        <button onclick="Pi.authenticate(['username'], (p)=>{}).then(u=>alert('أهلاً '+u.username))">دخول بواسطة Pi Network</button>
-    </div>
+
+<div class="card">
+    <img src="https://www.w3schools.com/howto/img_avatar.png" class="profile-img" alt="الفريد">
+    <h1>مكتب الفريد للخدمات</h1>
+    <p>تطبيقات توريد الخرسانة - 6 أكتوبر والشيخ زايد</p>
+    
+    <button class="btn-pi" onclick="login()">دخول بواسطة Pi Network</button>
+</div>
+
+<script>
+    // معرف تطبيقك من الصورة رقم 3 و4
+    const PI_APP_ID = "Rpw64depyijqsodpwojsg4fdlpsr30kwr7dgofebvb6bosepvw77nvsp9t4lqjyt"; 
+    
+    Pi.init({ version: "2.0", sandbox: true });
+
+    async function login() {
+        try {
+            const user = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+            alert("أهلاً بك يا برنس: " + user.username);
+            // هنا ممكن تحوله لصفحة الطلبات مباشرة
+        } catch (err) {
+            alert("افتح التطبيق من داخل Pi Browser عشان يشتغل صح");
+        }
+    }
+
+    function onIncompletePaymentFound(payment) { /* للمدفوعات المعلقة */ }
+</script>
+
 </body>
 </html>
