@@ -1,46 +1,152 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتب الفريد للخدمات - Al-Fareed Office</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.x/dist/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; text-align: center; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .status { margin: 20px 0; padding: 10px; background-color: #e8f0fe; border-radius: 5px; font-weight: bold; }
+        button { background-color: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; margin: 10px; width: 100%; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .info-box { background: #ecf0f1; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: right; }
+    </style>
+</head>
+<body>
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
-contract AlFareedOfficeToken is ERC20, Ownable {
-    
-    // نسبة المكافأة الافتراضية (مثلاً 1% من قيمة المعاملة)
-    uint256 public rewardRate = 1; 
-
-    // رسم تعبيري لمناطق الخدمة (6 أكتوبر والشيخ زايد) لتوثيق النطاق الجغرافي
-    string public constant SERVICE_AREA = "6th of October & Sheikh Zayed";
-
-    event ServicesRewardSent(address indexed customer, uint256 amount);
-
-    constructor() ERC20("Al-Fareed Office Token", "FARID") Ownable(msg.sender) {
-        // صك كمية أولية للمالك (أو لحوض السيولة وفقاً لـ PiRC1)
-        _mint(msg.sender, 1000000 * 10 ** decimals());
-    }
-
-    // وظيفة تسجيل طلب خدمة ومنح مكافأة (تطبيقاً لمبدأ المنفعة في PiRC1)
-    function completeService(address customer, uint256 orderValue) public onlyOwner {
-        require(customer != address(0), "Invalid customer address");
+    <div class="container">
+        <h1>مكتب الفريد للخدمات 🏢</h1>
+        <p>الخدمات الذكية للخرسانة الجاهزة في (6 أكتوبر والشيخ زايد)</p>
         
-        uint256 rewardAmount = (orderValue * rewardRate) / 100;
+        <div id="status" class="status">جاري التحميل...</div>
+
+        <button id="connectBtn">الاتصال بمحفظة Pi</button>
         
-        // التحقق من توفر رصيد في العقد للمكافآت
-        require(balanceOf(owner()) >= rewardAmount, "Insufficient rewards in treasury");
+        <div id="dashboard" style="display: none;">
+            <div class="info-box">
+                <p><strong>عنوان المحفظة:</strong> <span id="walletAddress"></span></p>
+                <p><strong>رصيدك من توكنز (FARID):</strong> <span id="tokenBalance">0</span> FARID</p>
+            </div>
+            
+            <button id="requestRewardBtn">تسجيل طلب والحصول على مكافأة (1%)</button>
+            <button id="redeemDiscountBtn" style="background-color: #e74c3c;">استبدال التوكنز بخصم (حرق)</button>
+        </div>
+    </div>
 
-        _transfer(owner(), customer, rewardAmount);
-        
-        emit ServicesRewardSent(customer, rewardAmount);
-    }
+    <script>
+        // --- بيانات العقد الذكي الخاص بك ---
+        const contractAddress = "0x...ضع_هنا_عنوان_عقدك_المنشور_على_الشبكة..."; // هام جداً: استبدل هذا بالعنوان الفعلي للعقد
+        const contractABI = [
+            // الـ ABI هي "اللغة" التي يفهمها الجافا سكريبت للتحدث مع العقد. 
+            // يمكنك الحصول عليها بعد عمل Compile للعقد في Remix.
+            // سأضع لك الوظائف الأساسية التي برمجناها:
+            "function balanceOf(address owner) view returns (uint256)",
+            "function completeService(address customer, uint256 orderValue) public",
+            "function redeemForDiscount(uint256 amount) public"
+        ];
 
-    // تحديث نسبة المكافآت حسب العروض الموسمية
-    function updateRewardRate(uint256 newRate) public onlyOwner {
-        rewardRate = newRate;
-    }
+        let provider, signer, contract;
+        const statusEl = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const dashboard = document.getElementById('dashboard');
+        const walletAddressEl = document.getElementById('walletAddress');
+        const tokenBalanceEl = document.getElementById('tokenBalance');
 
-    // وظيفة تسمح للمستخدمين بحرق (Burn) التوكنز مقابل خصم على الخدمات الورقية أو الخرسانة
-    function redeemForDiscount(uint256 amount) public {
-        _burn(msg.sender, amount);
-        // هنا يتم تسجيل الخصم في قاعدة بيانات المكتب الخارجية
-    }
-}
+        async function init() {
+            // التحقق من وجود Pi Browser أو محفظة متوافقة (مثل MetaMask للاختبار)
+            if (window.ethereum) {
+                provider = new ethers.BrowserProvider(window.ethereum);
+                statusEl.innerText = "متصل بالشبكة. يرجى تسجيل الدخول المحفظة.";
+                connectBtn.style.display = 'block';
+            } else {
+                statusEl.innerText = "لم يتم العثور على محفظة Pi. يرجى فتح التطبيق داخل Pi Browser.";
+                statusEl.style.backgroundColor = "#ffcccc";
+                connectBtn.style.display = 'none';
+            }
+        }
+
+        connectBtn.addEventListener('click', async () => {
+            try {
+                // طلب الاتصال بالمحفظة
+                signer = await provider.getSigner();
+                const address = await signer.getAddress();
+                
+                // ربط العقد الذكي بالواجهة
+                contract = new ethers.Contract(contractAddress, contractABI, signer);
+                
+                // تحديث الواجهة
+                walletAddressEl.innerText = address;
+                dashboard.style.display = 'block';
+                connectBtn.style.display = 'none';
+                statusEl.innerText = "تم الاتصال بنجاح! مرحباً بك في مكتب الفريد.";
+                statusEl.style.backgroundColor = "#ccffcc";
+                
+                // تحديث الرصيد
+                updateBalance(address);
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "فشل الاتصال بالمحفظة. حاول مرة أخرى.";
+            }
+        });
+
+        async function updateBalance(address) {
+            try {
+                // قراءة الرصيد من العقد الذكي (View Function)
+                const balance = await contract.balanceOf(address);
+                // تنسيق الرصيد (من Wei إلى Token Units)
+                tokenBalanceEl.innerText = ethers.formatUnits(balance, 18);
+            } catch (error) {
+                console.error("فشل في قراءة الرصيد:", error);
+            }
+        }
+
+        // --- وظائف التفاعل مع العقد (Write Functions) ---
+
+        document.getElementById('requestRewardBtn').addEventListener('click', async () => {
+            try {
+                statusEl.innerText = "جاري تسجيل الطلب وإرسال المكافأة...";
+                const orderValue = prompt("أدخل قيمة طلب الخرسانة (بالعملة المحلية):");
+                if (!orderValue) return;
+
+                // استدعاء وظيفة 'completeService' من العقد
+                // هام: في التطبيق الفعلي، هذه الوظيفة تستدعيها أنت كـ owner من لوحة تحكم خاصة بك.
+                const tx = await contract.completeService(await signer.getAddress(), orderValue);
+                await tx.wait(); // انتظار تأكيد المعاملة
+                
+                statusEl.innerText = "تم تسجيل الطلب وإرسال المكافأة بنجاح!";
+                updateBalance(await signer.getAddress());
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "حدث خطأ أثناء تسجيل الطلب. قد لا تملك الصلاحية.";
+            }
+        });
+
+        document.getElementById('redeemDiscountBtn').addEventListener('click', async () => {
+            try {
+                statusEl.innerText = "جاري معالجة حرق التوكنز للحصول على الخصم...";
+                const amount = prompt("أدخل عدد التوكنز التي ترغب في استبدالها بخصم:");
+                if (!amount) return;
+
+                // تنسيق المبلغ (من Token Units إلى Wei)
+                const amountInWei = ethers.parseUnits(amount, 18);
+
+                // استدعاء وظيفة 'redeemForDiscount' من العقد
+                const tx = await contract.redeemForDiscount(amountInWei);
+                await tx.wait(); // انتظار تأكيد المعاملة
+                
+                statusEl.innerText = "تم استبدال التوكنز بنجاح! سيتم تطبيق الخصم على طلبك القادم.";
+                updateBalance(await signer.getAddress());
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "حدث خطأ أثناء استبدال التوكنز.";
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
