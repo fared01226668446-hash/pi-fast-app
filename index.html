@@ -2,52 +2,125 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخرسانة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مكتب الفريد للخرسانة الجاهزة</title>
+    
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    
     <style>
-        body { background: #673ab7; color: white; font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { text-align: center; background: white; color: #333; padding: 40px; border-radius: 20px; width: 80%; max-width: 400px; }
-        .btn { background: #ffa500; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+        :root {
+            --primary-color: #673ab7;
+            --accent-color: #ffa500;
+            --text-light: #ffffff;
+        }
+
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .status-box {
+            background: #fff;
+            color: #333;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>مكتب الفريد للخدمات</h2>
-    <p>توريد خرسانة جاهزة - أكتوبر وزايد</p>
-    <button class="btn" id="startBtn" onclick="runApp()">دخول التطبيق الآن</button>
-    <p id="msg" style="font-size: 12px; color: #666; margin-top: 10px;"></p>
-</div>
+    <div class="container">
+        <img src="https://via.placeholder.com/80/ffa500/ffffff?text=F" alt="Logo" style="border-radius: 50%; margin-bottom: 15px;">
+        <h1>مكتب الفريد للخرسانة الجاهزة</h1>
+        <p>خدمات توريد الخرسانة في أكتوبر والشيخ زايد</p>
 
-<script>
-    const Pi = window.Pi;
-    Pi.init({ version: "2.0", sandbox: false });
+        <div id="status" class="status-box">جاري الاتصال بـ Pi Network...</div>
 
-    async function runApp() {
-        const btn = document.getElementById('startBtn');
-        const msg = document.getElementById('msg');
+        <button class="btn" onclick="loginPi()">تسجيل الدخول عبر Pi</button>
         
-        btn.disabled = true;
-        btn.innerText = "جاري التشغيل...";
-        msg.innerText = "يتم الاتصال بشبكة Pi...";
+        <div class="footer">
+            خدمة معتمدة لعملاء Pi Network © 2026
+        </div>
+    </div>
 
-        // مؤقت إجباري: إذا لم يستجب Pi خلال 4 ثوانٍ، افتح الصفحة التالية فوراً
-        const forceStart = setTimeout(() => {
-            window.location.href = "order.html";
-        }, 4000);
+    <script>
+        // تهيئة Pi SDK
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: false });
 
-        try {
-            const scopes = ['username'];
-            await Pi.authenticate(scopes, (p) => {});
-            clearTimeout(forceStart); // إلغاء المؤقت إذا نجح الاتصال بسرعة
-            window.location.href = "order.html";
-        } catch (err) {
-            // في حال وجود أي خطأ، افتح التطبيق كزائر
-            window.location.href = "order.html";
+        async function loginPi() {
+            try {
+                const scopes = ['username', 'payments'];
+                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                document.getElementById('status').innerText = "مرحباً: " + auth.user.username;
+                document.getElementById('status').style.color = "green";
+            } catch (err) {
+                document.getElementById('status').innerText = "خطأ في الاتصال: " + err.message;
+                document.getElementById('status').style.color = "red";
+            }
         }
-    }
-</script>
 
+        function onIncompletePaymentFound(payment) {
+            console.log("هناك عملية دفع معلقة", payment);
+        }
+
+        // كود معالجة المسارات (لحل مشكلة 404 داخلياً)
+        (function() {
+            if (window.location.pathname !== '/' && !window.location.pathname.includes('index.html')) {
+                console.log("إعادة توجيه المسار...");
+                window.history.replaceState(null, null, '/');
+            }
+        })();
+    </script>
 </body>
 </html>
