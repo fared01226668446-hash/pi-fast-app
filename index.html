@@ -3,76 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Al-Fareed Office | مكتب الفريد للخدمات</title>
+    <title>مكتب الفريد للخدمات | خرسانة جاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
-        }
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
-        h1 { color: #5e35b1; margin-bottom: 1.5rem; }
-        .status {
-            padding: 10px;
-            margin-bottom: 1rem;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #333; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 450px; margin: 20px; }
+        h1 { color: #5e35b1; font-size: 24px; }
+        .status { padding: 10px; margin-bottom: 15px; border-radius: 8px; font-size: 14px; }
         .status-loading { background: #fff3cd; color: #856404; }
         .status-success { background: #d4edda; color: #155724; }
         .status-error { background: #f8d7da; color: #721c24; }
-        
-        #auth-btn {
-            background-color: #5e35b1;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 1rem;
-            cursor: pointer;
-            display: none; /* سيظهر عند نجاح الـ Init */
-            width: 100%;
-            transition: background 0.3s;
-        }
-        #auth-btn:hover { background-color: #4527a0; }
-        
-        #user-info {
-            display: none;
-            margin-top: 20px;
-            text-align: right;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-        }
-        .info-item { margin-bottom: 10px; font-weight: bold; }
-        span { font-weight: normal; color: #666; }
+        #auth-btn { background-color: #5e35b1; color: white; border: none; padding: 12px; border-radius: 25px; width: 100%; font-size: 16px; cursor: pointer; display: none; }
+        #user-info { display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 15px; text-align: right; }
+        .order-form { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 15px; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; }
+        select, input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .submit-btn { background: #28a745; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>مكتب الفريد للخدمات</h1>
+    <p style="color: #666;">توريد خرسانة جاهزة - أكتوبر والشيخ زايد</p>
     
-    <div id="status-box" class="status status-loading">جاري تهيئة الشبكة...</div>
-    
-    <button id="auth-btn">تسجيل الدخول عبر Pi</button>
+    <div id="status-box" class="status status-loading">جاري الاتصال بالشبكة...</div>
+    <button id="auth-btn">تسجيل الدخول باستخدام Pi</button>
 
     <div id="user-info">
-        <div class="info-item">اسم المستخدم: <span id="user-name"></span></div>
-        <div class="info-item">المعرف (UID): <span id="user-addr"></span></div>
+        <p>مرحباً: <strong id="user-name"></strong></p>
+        
+        <div class="order-form">
+            <h3>نموذج طلب خرسانة</h3>
+            <label>نوع الخرسانة:</label>
+            <select id="concrete-type">
+                <option value="C250">عادية (C250)</option>
+                <option value="C350">مسلحة (C350)</option>
+                <option value="C400">عالية المقاومة (C400)</option>
+            </select>
+
+            <label>الكمية (متر مكعب):</label>
+            <input type="number" id="quantity" placeholder="أدخل الكمية المطلوبة">
+
+            <label>المنطقة:</label>
+            <select id="location">
+                <option>6 أكتوبر</option>
+                <option>الشيخ زايد</option>
+                <option>حدائق أكتوبر</option>
+            </select>
+
+            <button class="submit-btn" onclick="sendOrder()">إرسال الطلب الآن</button>
+        </div>
     </div>
 </div>
 
@@ -81,58 +62,48 @@
     const authBtn = document.getElementById('auth-btn');
     const userInfo = document.getElementById('user-info');
     const userName = document.getElementById('user-name');
-    const userAddr = document.getElementById('user-addr');
-
-    // التأكد من تحميل المكتبة
-    const Pi = window.Pi;
 
     async function initPi() {
         try {
-            // تهيئة التطبيق (استخدم sandbox: true للتجربة)
-            await Pi.init({ version: "2.0", sandbox: true });
-            
-            statusBox.innerText = "متصل ببيئة الشبكة";
+            // تم التغيير لـ sandbox: false للعمل بشكل مباشر
+            await Pi.init({ version: "2.0", sandbox: false });
+            statusBox.innerText = "متصل بالشبكة بنجاح";
             statusBox.className = "status status-success";
             authBtn.style.display = "block";
-            
         } catch (e) {
-            statusBox.innerText = "خطأ في تحميل الشبكة";
+            statusBox.innerText = "خطأ: تأكد من فتح التطبيق داخل Pi Browser";
             statusBox.className = "status status-error";
-            console.error("Initialization Error:", e);
         }
     }
 
     authBtn.onclick = async function() {
-        statusBox.innerText = "...جاري التحقق";
-        statusBox.className = "status status-loading";
-        
+        statusBox.innerText = "...جاري التحقق من هويتك";
         try {
             const scopes = ['username', 'payments', 'wallet_address'];
+            const onIncompletePaymentFound = (payment) => { console.log(payment); };
             
-            // التعامل مع المدفوعات غير المكتملة
-            const onIncompletePaymentFound = (payment) => {
-                console.log("Incomplete payment found", payment);
-            };
-
-            // طلب المصادقة
             const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-
-            // تحديث الواجهة عند النجاح
+            
             statusBox.style.display = "none";
             authBtn.style.display = "none";
             userInfo.style.display = "block";
-            
             userName.innerText = auth.user.username;
-            userAddr.innerText = auth.user.uid;
-
         } catch (error) {
-            statusBox.innerText = "فشل تسجيل الدخول";
+            statusBox.innerText = "فشل تسجيل الدخول، حاول مرة أخرى";
             statusBox.className = "status status-error";
-            console.error("Auth Error:", error);
         }
     };
 
-    // بدء التشغيل
+    function sendOrder() {
+        const type = document.getElementById('concrete-type').value;
+        const qty = document.getElementById('quantity').value;
+        const loc = document.getElementById('location').value;
+
+        if(!qty) { alert("يرجى إدخال الكمية"); return; }
+        
+        alert(`تم استلام طلبك يا ${userName.innerText}!\nالنوع: ${type}\nالكمية: ${qty} متر\nالمنطقة: ${loc}\nسنتواصل معك للتأكيد.`);
+    }
+
     initPi();
 </script>
 
