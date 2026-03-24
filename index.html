@@ -1,3 +1,4 @@
+<script>
     const statusBox = document.getElementById('statusBox');
     const authBtn = document.getElementById('authBtn');
     const userInfo = document.getElementById('userInfo');
@@ -6,10 +7,9 @@
 
     const Pi = window.Pi;
 
-    // 1. تهيئة الـ SDK
     try {
         Pi.init({ version: "2.0", sandbox: true });
-        statusBox.innerText = "متصل ببيئة Pi بنجاح. يرجى تسجيل الدخول.";
+        statusBox.innerText = "متصل ببيئة Pi بنجاح.";
         statusBox.className = "status status-success";
         authBtn.style.display = "block";
     } catch (e) {
@@ -17,31 +17,22 @@
         statusBox.className = "status status-error";
     }
 
-    // 2. وظيفة تسجيل الدخول
     authBtn.onclick = async function() {
-        statusBox.innerText = "...جاري التحقق من المحفظة";
+        statusBox.innerText = "...جاري التحقق";
         statusBox.className = "status status-wait";
-
         try {
             const scopes = ['username', 'payments', 'wallet_address'];
-
-            function onIncompletePaymentFound(payment) {
-                console.log("مدفوعة معلقة", payment);
-            };
-
+            function onIncompletePaymentFound(payment) { };
             const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
 
-            // نجاح الاتصال
             statusBox.style.display = "none";
             authBtn.style.display = "none";
             userInfo.style.display = "block";
-
             userName.innerText = auth.user.username;
-            userAddr.innerText = auth.user.uid.substring(0, 10) + "..."; 
-
+            userAddr.innerText = auth.user.uid.substring(0, 8) + "...";
         } catch (error) {
-            statusBox.innerText = "يرجى الموافقة على الأذونات";
+            statusBox.innerText = "فشل تسجيل الدخول";
             statusBox.className = "status status-error";
-            console.error(error);
         }
     };
+</script>
