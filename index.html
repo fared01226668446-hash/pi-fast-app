@@ -4,111 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>مكتب الفريد للخرسانة الجاهزة</title>
-    
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    
     <style>
-        :root {
-            --main-bg: #673ab7;
-            --accent: #ffa500;
-        }
-        body {
-            background-color: var(--main-bg);
-            color: white;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .app-container {
-            width: 90%;
-            max-width: 450px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .status-badge {
-            background: #fff;
-            color: #333;
-            padding: 10px;
-            border-radius: 12px;
-            margin: 20px 0;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .btn-order {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 18px;
-            width: 100%;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .footer-text { margin-top: 20px; font-size: 10px; opacity: 0.7; }
+        :root { --main: #673ab7; --gold: #ffa500; }
+        body { background: var(--main); color: white; font-family: Arial; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center; }
+        .card { background: rgba(255,255,255,0.15); padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.2); }
+        input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin: 10px 0; box-sizing: border-box; }
+        .btn { background: var(--gold); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .status { background: white; color: #333; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
+<div class="card">
     <h2>الفريد للخرسانة الجاهزة</h2>
-    <p>تغطية كاملة: أكتوبر - زايد - حدائق أكتوبر</p>
+    <p>أكتوبر - الشيخ زايد - حدائق أكتوبر</p>
+    <div id="status" class="status">في انتظار دخول Pi...</div>
 
-    <div id="status" class="status-badge">في انتظار تسجيل دخول Pi...</div>
-
-    <button class="btn-order" onclick="login()">دخول وطلب خرسانة</button>
-
-    <div class="footer-text">
-        App ID المتصل: <br>
-        <span style="font-family: monospace; color: #ffeb3b;">rgd3i5ncoo7wskuzewwv41t7bj0mccpqwniiq7mhifmzewjv9tdu8c9cbtz8nrne</span>
+    <div id="order-form" style="display:none;">
+        <input type="number" id="meters" placeholder="كمية الخرسانة (متر مكعب)">
+        <input type="text" id="location" placeholder="العنوان بالتفصيل">
+        <button class="btn" onclick="sendOrder()">إرسال الطلب عبر واتساب</button>
     </div>
+
+    <button id="login-btn" class="btn" onclick="login()">دخول وطلب خرسانة</button>
 </div>
 
 <script>
-    // تهيئة Pi SDK باستخدام App ID الخاص بك
     const Pi = window.Pi;
     Pi.init({ version: "2.0", sandbox: false });
 
     async function login() {
         try {
-            document.getElementById('status').innerText = "جاري الاتصال بحسابك...";
-            
-            // استخدام الـ App ID لعمل المصادقة
-            const scopes = ['username', 'payments'];
-            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            
+            const auth = await Pi.authenticate(['username', 'payments'], (p) => console.log(p));
             document.getElementById('status').innerText = "أهلاً بك: " + auth.user.username;
-            document.getElementById('status').style.backgroundColor = "#4caf50";
-            document.getElementById('status').style.color = "white";
-            
-            console.log("تم الربط بنجاح للتطبيق: rgd3i5ncoo...");
-        } catch (err) {
-            document.getElementById('status').innerText = "افتح التطبيق من داخل Pi Browser";
-            document.getElementById('status').style.backgroundColor = "#f44336";
-            document.getElementById('status').style.color = "white";
-        }
+            document.getElementById('login-btn').style.display = "none";
+            document.getElementById('order-form').style.display = "block";
+        } catch (err) { alert("افتح التطبيق من Pi Browser"); }
     }
 
-    function onIncompletePaymentFound(payment) {
-        console.log("Incomplete payment:", payment);
+    function sendOrder() {
+        const m = document.getElementById('meters').value;
+        const loc = document.getElementById('location').value;
+        if(!m || !loc) return alert("اكمل البيانات");
+        
+        // --- ضع رقمك الجديد هنا مكان الأصفار ---
+        const myPhone = "201000000000"; 
+        
+        const msg = `طلب خرسانة جديد:%0Aالكمية: ${m} متر%0Aالموقع: ${loc}`;
+        window.open(`https://wa.me/${myPhone}?text=${msg}`, '_blank');
     }
 
-    // حل مشكلة 404 والشرطة المائلة
-    (function() {
-        if (window.location.pathname.includes('404.html')) {
-            window.history.replaceState(null, null, '/pi-fast-app/');
-        }
-    })();
+    // حل مشكلة حذف الشرطة المائلة وتجنب الـ 404
+    if (window.location.pathname.includes('404.html')) {
+        window.history.replaceState(null, null, '/pi-fast-app/');
+    }
 </script>
-
 </body>
 </html>
