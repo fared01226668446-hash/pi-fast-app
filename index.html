@@ -10,14 +10,16 @@
         .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h1 { color: #5e35b1; margin-bottom: 10px; font-size: 28px; }
         p { color: #666; font-size: 18px; }
-        /* تصميم اللوجو الفخم من خلاطاتك */
-        .logo { width: 150px; height: 150px; border-radius: 50%; border: 5px solid #5e35b1; background-color: white; margin: 20px 0; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        /* تصميم اللوجو الدائري الاحترافي */
+        .logo { width: 150px; height: 150px; border-radius: 50%; border: 5px solid #5e35b1; background-color: white; margin: 20px 0; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.2); overflow: hidden; }
+        .logo img { width: 100%; height: 100%; object-fit: cover; }
         .logo-text { color: #5e35b1; font-weight: bold; font-size: 22px; margin-top: 10px; }
         .btn-pi { background-color: #5e35b1; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; width: 100%; transition: 0.3s; margin-top: 20px; box-shadow: 0 4px 10px rgba(94, 53, 177, 0.3); }
         .btn-pi:hover { background-color: #4527a0; transform: translateY(-2px); }
         .order-form { display: none; margin-top: 30px; text-align: right; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .price-tag { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: 15px; text-align: center; font-size: 20px; }
+        label { font-weight: bold; color: #333; display: block; margin-top: 15px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .price-tag { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: 20px; text-align: center; font-size: 22px; border: 1px dashed #2e7d32; }
     </style>
 </head>
 <body>
@@ -28,7 +30,7 @@
         <p>تطبيقات توريد الخرسانة - 6 أكتوبر والشيخ زايد</p>
         
         <div class="logo">
-            <img src="https://via.placeholder.com/150/5e35b1/ffffff?text=%D8%A7%D9%84%D9%81%D8%B1%D9%8A%D8%AF" alt="Al-Fareed Logo" style="width: 100%; height: 100%; border-radius: 50%;">
+            <img src="https://i.ibb.co/VWV0p0p/concrete-truck.jpg" alt="لوجو الفريد">
         </div>
         <div class="logo-text">مكتب الفريد للخدمات</div>
 
@@ -36,21 +38,23 @@
     </div>
 
     <div id="order-section" class="order-form">
-        <h3>طلب صبة خرسانية جديدة</h3>
-        <label>المنطقة المستهدفة:</label>
+        <h3>إنشاء طلب توريد جديد</h3>
+        <hr>
+        
+        <label>منطقة التوريد:</label>
         <select id="area">
             <option value="october">6 أكتوبر / حدائق أكتوبر</option>
             <option value="zayed">الشيخ زايد</option>
         </select>
 
-        <label>نوع الخرسانة والإجهاد:</label>
-        <select id="type">
+        <label>نوع الخرسانة (الإجهاد):</label>
+        <select id="type" onchange="calculatePrice()">
             <option value="250">إجهاد 250 (عادية)</option>
-            <option value="350">إجهاد 350 (مسلحة)</option>
+            <option value="350" selected>إجهاد 350 (مسلحة)</option>
             <option value="400">إجهاد 400 (كبارى)</option>
         </select>
 
-        <label>الكمية (متر مكعب):</label>
+        <label>الكمية المطلوبة (متر مكعب):</label>
         <input type="number" id="quantity" placeholder="مثلاً: 50" oninput="calculatePrice()">
 
         <div class="price-tag" id="total-price">إجمالي السعر: 0 Pi</div>
@@ -60,42 +64,48 @@
 </div>
 
 <script>
-    // 1. تعريف التطبيق بالـ API Key بتاعك
+    // 1. الربط بالـ API Key الخاص بك
     const PI_APP_ID = "Rpw64depyijqsodpwojsg4fdlpsr30kwr7dgofebvb6bosepvw77nvsp9t4lqjyt";
     
-    // 2. تشغيل الـ SDK
-    Pi.init({ version: "2.0", sandbox: true }); // خليه true للتجربة
+    // 2. تهيئة النظام
+    Pi.init({ version: "2.0", sandbox: true });
 
     async function loginToFaredApp() {
         try {
-            // الربط الرسمي باستخدام الهوية الرقمية
+            // الربط الرسمي مع حساب العميل في Pi
             const user = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
-            alert("أهلاً يا برنس " + user.username + "! تم تفعيل دخولك.");
+            alert("أهلاً يا برنس " + user.username + "! تم تفعيل دخولك بنجاح.");
             
-            // تحويل العميل لصفحة الطلبات فوراً
+            // إظهار واجهة الطلبات وإخفاء صفحة الدخول
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('order-section').style.display = 'block';
         } catch (err) {
             console.error(err);
-            alert("يا برنس، افتح التطبيق من جوه Pi Browser عشان السيستم يشتغل!");
+            alert("يا برنس، لازم تفتح التطبيق من جوه Pi Browser عشان السيستم يشتغل!");
         }
     }
 
     function calculatePrice() {
         const qty = document.getElementById('quantity').value;
         const typePrice = document.getElementById('type').value;
-        // حاسبة افتراضية: كل 10 متر بـ 1 Pi (تقريبي للتجربة)
-        const total = (qty * (typePrice / 1000)).toFixed(4);
-        document.getElementById('total-price').innerText = "إجمالي السعر التقديري: " + total + " Pi";
+        if(qty > 0) {
+            // حاسبة افتراضية: السعر يعتمد على الإجهاد والكمية
+            const total = (qty * (typePrice / 1000)).toFixed(4);
+            document.getElementById('total-price').innerText = "إجمالي السعر: " + total + " Pi";
+        } else {
+            document.getElementById('total-price').innerText = "إجمالي السعر: 0 Pi";
+        }
     }
 
     function requestConcrete() {
-        alert("جاري تجهيز الطلب وربطك بمحطة الخرسانة في أكتوبر... الدفع سيكون لمحفظتك GDSKA.");
-        // هنا يتم استدعاء وظيفة الدفع Pi.createPayment()
+        const total = document.getElementById('total-price').innerText;
+        alert("جاري تحويلك لبوابة الدفع.. الطلب سيوجه لمحطتنا في أكتوبر. " + total);
+        // هنا يتم استدعاء وظيفة Pi.createPayment() لاحقاً
     }
 
     function onIncompletePaymentFound(payment) {
-        console.log("هناك دفعة معلقة لمحفظة GDSKA...");
+        // فحص أي عمليات معلقة لمحفظتك GDSKA
+        console.log("فحص العمليات المعلقة...");
     }
 </script>
 
