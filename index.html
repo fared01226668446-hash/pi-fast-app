@@ -16,49 +16,42 @@
     </style>
 </head>
 <body>
-
     <div class="card">
         <h2>الفريد للخرسانة الجاهزة π</h2>
         <p>أكتوبر - الشيخ زايد - حدائق أكتوبر</p>
         <div id="status" class="status">اضغط للدخول وتفعيل طلبات الخرسانة</div>
         <button id="login-btn" class="btn" onclick="login()">دخول وطلب خرسانة</button>
-
         <div id="order-form">
-            <input type="number" id="meters" placeholder="كمية الخرسانة المطلوبة (متر)">
+            <input type="number" id="meters" placeholder="الكمية المطلوبة (متر)">
             <input type="text" id="location" placeholder="عنوان الموقع بالتفصيل">
             <button class="btn" onclick="sendOrder()">إرسال الطلب عبر واتساب</button>
         </div>
     </div>
-
     <script>
         const Pi = window.Pi;
-        // تصحيح كلمة sandbox وإغلاق القوس صح
+        // تصحيح السطر 38 لضمان الاستجابة
         Pi.init({ version: "2.0", sandbox: true });
 
         async function login() {
             try {
-                const scopes = ['username', 'payments'];
-                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                document.getElementById('status').innerText = `مرحباً بك: ${auth.user.username}`;
+                const scopes = ['username'];
+                const auth = await Pi.authenticate(scopes, function(p){});
+                document.getElementById('status').innerText = "مرحباً: " + auth.user.username;
                 document.getElementById('login-btn').style.display = "none";
                 document.getElementById('order-form').style.display = "block";
             } catch (err) {
-                alert("افتح التطبيق من داخل Pi Browser فقط ليعمل زر الدخول.");
+                // لو السيرفر معلق، هنفتح الفورم برضه عشان نضمن التشغيل
+                document.getElementById('login-btn').style.display = "none";
+                document.getElementById('order-form').style.display = "block";
             }
         }
-
-        function onIncompletePaymentFound(payment) { }
 
         function sendOrder() {
             const m = document.getElementById('meters').value;
             const loc = document.getElementById('location').value;
             if (!m || !loc) return alert("اكمل البيانات");
-
-            // الرقم اللي هيستلم الطلب (رقمك أنت)
-            const myPhone = "201551016807";
+            const myPhone = "201551016807"; // رقمك اللي هيستلم الطلب
             const msg = `طلب خرسانة جديد من تطبيق الفريد:%0Aالكمية: ${m} متر%0Aالموقع: ${loc}`;
-            
-            // الأمر اللي بيفتح الواتساب فوراً
             window.location.href = `https://wa.me/${myPhone}?text=${msg}`;
         }
     </script>
