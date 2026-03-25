@@ -2,80 +2,167 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مكتب الفريد للخرسانة الجاهزة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الفريد للخرسانة الجاهزة</title>
+    
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
     <style>
-        :root { --main: #673ab7; --gold: #ffa500; }
-        body { background: var(--main); color: white; font-family: Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center; }
-        .card { background: rgba(255,255,255,0.15); padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin: 10px 0; box-sizing: border-box; font-size: 16px; }
-        .btn { background: var(--gold); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn:active { transform: scale(0.98); }
-        .status { background: white; color: #333; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
-        #order-form { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 20px; }
+        :root {
+            --main-bg: #e6e6e6; /* لون خلفية هادئ */
+            --primary-color: #673ab7; /* لون Pi البنفسجي */
+            --secondary-color: #ff9800; /* لون برتقالي */
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--main-bg);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        #status {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #512da8;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        #order-form {
+            display: none; /* مخفي حتى تسجيل الدخول */
+            margin-top: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .pi-icon {
+            font-size: 1.5em;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>الفريد للخرسانة الجاهزة</h2>
-    <p>أكتوبر - الشيخ زايد - حدائق أكتوبر</p>
-    <div id="status" class="status">بإنتظار تسجيل الدخول عبر Pi...</div>
+    <div class="card">
+        <h2>الفريد للخرسانة الجاهزة <span class="pi-icon">π</span></h2>
+        <p>مرحباً بكم في تطبيق الفريد لطلب الخرسانة في أكتوبر، الشيخ زايد، وحدائق أكتوبر.</p>
+        
+        <div id="status">الرجاء تسجيل الدخول أولاً</div>
+        <button id="login-btn" class="btn" onclick="login()">دخول وطلب خرسانة</button>
 
-    <div id="order-form" style="display:none;">
-        <input type="number" id="meters" placeholder="الكمية المطلوبة (متر مكعب)">
-        <input type="text" id="location" placeholder="العنوان بالتفصيل (أكتوبر/زايد)">
-        <button class="btn" onclick="sendOrder()">تأكيد الطلب عبر واتساب</button>
+        <div id="order-form">
+            <input type="number" id="meters" placeholder="كمية الخرسانة (بالمتر المكعب)">
+            <input type="text" id="location" placeholder="عنوان الموقع بالتفصيل">
+            <button class="btn" onclick="sendOrder()">إرسال الطلب</button>
+        </div>
     </div>
 
-    <button id="login-btn" class="btn" onclick="login()">دخول وطلب خرسانة</button>
-</div>
+    <script>
+        // تعريف متغير لـ Pi
+        const Pi = window.Pi;
 
-<script>
-    const Pi = window.Pi;
-    // تم ضبط الإعدادات لتتوافق مع الرابط الجديد الخاص بك
-    Pi.init({ version: "2.0", sandbox: false });
+        // الخطوة 1: تهيئة الـ SDK
+        // (التعديل الوحيد هنا: تغيير sandbox ليكون true)
+        Pi.init({ version: "2.0", sandbox: true });
 
-    async function login() {
-        try {
-            const scopes = ['username', 'payments'];
-            const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-            document.getElementById('status').innerText = "مرحباً بك: " + auth.user.username;
-            document.getElementById('status').style.color = "green";
-            document.getElementById('login-btn').style.display = "none";
-            document.getElementById('order-form').style.display = "block";
-        } catch (err) {
-            document.getElementById('status').innerText = "خطأ: يرجى الفتح من Pi Browser";
-            console.error(err);
-        }
-    }
+        // الخطوة 2: وظيفة تسجيل الدخول
+        async function login() {
+            const statusDiv = document.getElementById('status');
+            const loginBtn = document.getElementById('login-btn');
+            const orderForm = document.getElementById('order-form');
 
-    function onIncompletePaymentFound(payment) {
-        console.log("هناك مدفوعات معلقة", payment);
-    }
-
-    function sendOrder() {
-        const m = document.getElementById('meters').value;
-        const loc = document.getElementById('location').value;
-        if(!m || !loc) return alert("يرجى إكمال البيانات المطلوبة");
-        
-        // الرقم فارغ حالياً بناءً على طلبك - يمكنك وضعه هنا عند الرغبة في التشغيل
-        const myPhone = ""; 
-        
-        if (!myPhone) {
-            alert("خدمة الواتساب قيد التجهيز حالياً. سيتم التواصل معك قريباً.");
-            return;
+            try {
+                // طلب الصلاحيات الأساسية
+                const scopes = ['payments', 'username'];
+                
+                // بدء تسجيل الدخول
+                statusDiv.innerText = "جاري الاتصال بـ Pi Network...";
+                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                
+                // في حال النجاح
+                statusDiv.innerText = `مرحباً بك: ${auth.user.username}`;
+                loginBtn.style.display = 'none'; // إخفاء زر الدخول
+                orderForm.style.display = 'block'; // إظهار واجهة الطلب
+            } catch (err) {
+                // في حال حدوث خطأ
+                console.error(err);
+                statusDiv.innerText = `خطأ في الدخول. تأكد من فتح الرابط داخل Pi Browser.`;
+            }
         }
 
-        const msg = `طلب خرسانة جديد من تطبيق الفريد:%0Aالكمية: ${m} متر%0Aالموقع: ${loc}`;
-        window.open(`https://wa.me/${myPhone}?text=${msg}`, '_blank');
-    }
+        // الخطوة 3: التعامل مع المدفوعات غير المكتملة
+        function onIncompletePaymentFound(payment) {
+            console.log("هناك مدفوعات معلقة", payment);
+            // (اختياري: يمكنك إضافة كود هنا للتعامل مع المدفوعات المعلقة)
+        }
 
-    // معالجة ذكية للرابط لضمان فتح التطبيق حتى مع أخطاء الـ 404
-    if (window.location.pathname.includes('404.html')) {
-        window.history.replaceState(null, null, '/pi-fast-app/');
-    }
-</script>
+        // الخطوة 4: وظيفة إرسال الطلب
+        function sendOrder() {
+            const meters = document.getElementById('meters').value;
+            const location = document.getElementById('location').value;
+
+            if (!meters || !location) {
+                alert("الرجاء ملء كافة البيانات المطلوبة");
+                return;
+            }
+
+            const alertMessage = `تم استلام طلبك! ${meters} متر خرسانة لموقع: ${location}. سيتم التواصل معك قريباً.`;
+            alert(alertMessage);
+        }
+    </script>
 </body>
 </html>
