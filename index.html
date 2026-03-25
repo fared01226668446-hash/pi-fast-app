@@ -3,56 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الفريد للخرسانة الجاهزة</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <title>الفريد للخرسانة</title>
     <style>
-        :root { --main: #673ab7; --gold: #ff9800; }
-        body { font-family: Arial, sans-serif; background: var(--main); color: white; text-align: center; padding: 20px; margin: 0; }
-        .card { background: rgba(255,255,255,0.1); padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; color: #333; }
-        .btn { background: var(--gold); color: white; padding: 15px; border: none; border-radius: 10px; width: 100%; font-size: 18px; cursor: pointer; font-weight: bold; }
-        .status { background: white; color: #333; padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 14px; font-weight: bold; }
-        #order-form { display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 20px; }
+        body { font-family: Arial; background: #673ab7; color: white; text-align: center; padding: 20px; }
+        .card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; }
+        .btn { background: #ff9800; color: white; padding: 15px; border: none; border-radius: 10px; width: 100%; font-size: 18px; cursor: pointer; margin-top: 10px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>الفريد للخرسانة الجاهزة π</h2>
-        <p>أكتوبر - الشيخ زايد - حدائق أكتوبر</p>
-        <div id="status" class="status">اضغط للدخول وتفعيل طلبات الخرسانة</div>
-        <button id="login-btn" class="btn" onclick="login()">دخول وطلب خرسانة</button>
-        <div id="order-form">
-            <input type="number" id="meters" placeholder="الكمية المطلوبة (متر)">
-            <input type="text" id="location" placeholder="عنوان الموقع بالتفصيل">
-            <button class="btn" onclick="sendOrder()">إرسال الطلب عبر واتساب</button>
-        </div>
+        <h2>الفريد للخرسانة الجاهزة</h2>
+        <p>أكتوبر - زايد - حدائق أكتوبر</p>
+        
+        <input type="number" id="m" placeholder="الكمية (متر)">
+        <input type="text" id="l" placeholder="العنوان بالتفصيل">
+        
+        <button class="btn" onclick="orderNow()">اضغط لطلب الخرسانة عبر واتساب</button>
     </div>
+
     <script>
-        const Pi = window.Pi;
-        // تصحيح السطر 38 لضمان الاستجابة
-        Pi.init({ version: "2.0", sandbox: true });
+        function orderNow() {
+            const meters = document.getElementById('m').value;
+            const location = document.getElementById('l').value;
+            if(!meters || !location) return alert("اكتب الكمية والعنوان");
 
-        async function login() {
-            try {
-                const scopes = ['username'];
-                const auth = await Pi.authenticate(scopes, function(p){});
-                document.getElementById('status').innerText = "مرحباً: " + auth.user.username;
-                document.getElementById('login-btn').style.display = "none";
-                document.getElementById('order-form').style.display = "block";
-            } catch (err) {
-                // لو السيرفر معلق، هنفتح الفورم برضه عشان نضمن التشغيل
-                document.getElementById('login-btn').style.display = "none";
-                document.getElementById('order-form').style.display = "block";
-            }
-        }
-
-        function sendOrder() {
-            const m = document.getElementById('meters').value;
-            const loc = document.getElementById('location').value;
-            if (!m || !loc) return alert("اكمل البيانات");
-            const myPhone = "201551016807"; // رقمك اللي هيستلم الطلب
-            const msg = `طلب خرسانة جديد من تطبيق الفريد:%0Aالكمية: ${m} متر%0Aالموقع: ${loc}`;
-            window.location.href = `https://wa.me/${myPhone}?text=${msg}`;
+            const phone = "201551016807";
+            const text = `طلب جديد من تطبيق الفريد:%0Aالكمية: ${meters} متر%0Aالموقع: ${location}`;
+            
+            // فتح الواتساب مباشرة دون انتظار Pi
+            window.location.href = `https://wa.me/${phone}?text=${text}`;
         }
     </script>
 </body>
