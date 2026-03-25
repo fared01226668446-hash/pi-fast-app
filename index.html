@@ -9,9 +9,8 @@
         :root { --main: #673ab7; --gold: #ff9800; }
         body { font-family: Arial, sans-serif; background: var(--main); color: white; text-align: center; padding: 20px; margin: 0; }
         .card { background: rgba(255,255,255,0.1); padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; color: #333; }
         .btn { background: var(--gold); color: white; padding: 15px; border: none; border-radius: 10px; width: 100%; font-size: 18px; cursor: pointer; font-weight: bold; }
-        .btn:active { transform: scale(0.98); }
         .status { background: white; color: #333; padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 14px; font-weight: bold; }
         #order-form { display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 20px; }
     </style>
@@ -21,13 +20,11 @@
     <div class="card">
         <h2>الفريد للخرسانة الجاهزة π</h2>
         <p>أكتوبر - الشيخ زايد - حدائق أكتوبر</p>
-        <div id="status" class="status">الرجاء تسجيل الدخول لتفعيل طلبات الخرسانة</div>
-
+        <div id="status" class="status">اضغط للدخول وتفعيل طلبات الخرسانة</div>
         <button id="login-btn" class="btn" onclick="login()">دخول وطلب خرسانة</button>
 
         <div id="order-form">
-            <h3 style="color: var(--gold);">بيانات الطلب الجديد</h3>
-            <input type="number" id="meters" placeholder="كمية الخرسانة المطلوبة (بالأمتار)">
+            <input type="number" id="meters" placeholder="كمية الخرسانة المطلوبة (متر)">
             <input type="text" id="location" placeholder="عنوان الموقع بالتفصيل">
             <button class="btn" onclick="sendOrder()">إرسال الطلب عبر واتساب</button>
         </div>
@@ -35,50 +32,34 @@
 
     <script>
         const Pi = window.Pi;
-        // تفعيل الـ Sandbox لضمان الاتصال من تليفون آخر في مرحلة التجربة
+        // تصحيح كلمة sandbox وإغلاق القوس صح
         Pi.init({ version: "2.0", sandbox: true });
 
         async function login() {
-            const statusDiv = document.getElementById('status');
             try {
                 const scopes = ['username', 'payments'];
-                statusDiv.innerText = "جاري الاتصال بشركة Pi...";
                 const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                
-                statusDiv.innerText = `مرحباً بك: ${auth.user.username}`;
-                statusDiv.style.background = "#d4edda";
+                document.getElementById('status').innerText = `مرحباً بك: ${auth.user.username}`;
                 document.getElementById('login-btn').style.display = "none";
                 document.getElementById('order-form').style.display = "block";
             } catch (err) {
-                statusDiv.innerText = "يجب فتح الرابط داخل Pi Browser فقط.";
-                console.error(err);
+                alert("افتح التطبيق من داخل Pi Browser فقط ليعمل زر الدخول.");
             }
         }
 
-        function onIncompletePaymentFound(payment) {
-            console.log("Incomplete payment found", payment);
-        }
+        function onIncompletePaymentFound(payment) { }
 
         function sendOrder() {
             const m = document.getElementById('meters').value;
             const loc = document.getElementById('location').value;
+            if (!m || !loc) return alert("اكمل البيانات");
 
-            if (!m || !loc) {
-                return alert("الرجاء إدخال الكمية والعنوان");
-            }
-
-            // رقمك الشخصي الذي سيتلقى الطلبات
+            // الرقم اللي هيستلم الطلب (رقمك أنت)
             const myPhone = "201551016807";
-
             const msg = `طلب خرسانة جديد من تطبيق الفريد:%0Aالكمية: ${m} متر%0Aالموقع: ${loc}`;
-            const whatsappUrl = `https://wa.me/${myPhone}?text=${msg}`;
             
-            // فتح واتساب لإرسال الطلب
-            window.open(whatsappUrl, '_blank');
-        }
-
-        if (window.location.pathname.includes('/index.html')) {
-            window.history.replaceState(null, '', window.location.pathname.replace('/index.html', '/'));
+            // الأمر اللي بيفتح الواتساب فوراً
+            window.location.href = `https://wa.me/${myPhone}?text=${msg}`;
         }
     </script>
 </body>
