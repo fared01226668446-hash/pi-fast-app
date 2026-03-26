@@ -2,20 +2,28 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سياسة الخصوصية - مكتب الفريد</title>
     <style>
-        body { font-family: sans-serif; padding: 30px; line-height: 1.6; color: #333; }
-        h1 { color: #5e2a84; }
+        body { font-family: sans-serif; padding: 30px; line-height: 1.6; color: #333; text-align: right; }
+        h1 { color: #5e2a84; border-bottom: 2px solid #5e2a84; padding-bottom: 10px; }
+        .info-box { background: #f8f0ff; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid #e1d0f5; }
     </style>
 </head>
 <body>
     <h1>سياسة الخصوصية لمكتب الفريد</h1>
-    <p>نحن في مكتب الفريد نحترم خصوصيتك. تطبيقنا لا يجمع أي بيانات شخصية حساسة.</p>
+    <p>نحن في مكتب الفريد للخدمات الخرسانية نلتزم بحماية خصوصيتك.</p>
+    
     <ul>
-        <li>نستخدم اسم المستخدم الخاص بـ Pi فقط للترحيب بك داخل التطبيق.</li>
-        <li>عمليات الدفع تتم بالكامل عبر محفظة Pi الآمنة.</li>
-        <li>لا نقوم بمشاركة أي معلومات مع أطراف خارجية.</li>
+        <li><strong>البيانات الشخصية:</strong> تطبيقنا لا يجمع أي بيانات حساسة، ونستخدم فقط اسم المستخدم الخاص بـ Pi للترحيب بك.</li>
+        <li><strong>عمليات الدفع:</strong> تتم بالكامل عبر محفظة Pi الآمنة باستخدام الـ API المعتمد.</li>
+        <li><strong>رقم الهاتف:</strong> نستخدم رقمك للتواصل بخصوص طلبات الخرسانة فقط.</li>
     </ul>
-    <p>للتواصل: 01226668446</p>
+
+    <div class="info-box">
+        <strong>للتواصل المباشر:</strong><br>
+        رقم الواتساب: 01551016807<br>
+        معرف التطبيق (API): Adhczlnija71...
+    </div>
 </body>
 </html>
