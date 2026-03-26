@@ -3,70 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخدمات</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <title>مكتب الفريد للخدمات الخرسانية</title>
     
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 30px; border-radius: 20px; border-top: 8px solid #ffa000; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        /* تصميم الواجهة اللي بتحبها */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; direction: rtl; }
+        .card { max-width: 450px; margin: auto; background: white; padding: 30px; border-radius: 20px; border-top: 10px solid #ffa000; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h1 { color: #5e35b1; margin-bottom: 5px; }
-        label { display: block; text-align: right; margin-top: 15px; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-        .btn-order { background-color: #ffa000; color: white; border: none; padding: 18px; width: 100%; font-size: 20px; border-radius: 12px; cursor: pointer; margin-top: 25px; font-weight: bold; }
-        #status { margin-top: 15px; font-size: 14px; color: #666; }
+        .sub-title { color: #666; margin-bottom: 25px; font-size: 14px; }
+        
+        label { display: block; text-align: right; font-weight: bold; margin-top: 20px; color: #333; }
+        
+        /* تنسيق الخانات عشان تفتح لوحة المفاتيح فوراً */
+        input, select { 
+            width: 100%; 
+            padding: 15px; 
+            margin-top: 8px; 
+            border: 2px solid #ddd; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            box-sizing: border-box; 
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: #ffa000; background-color: #fffdf9; }
+
+        /* تنسيق زرار الطلب */
+        .btn-order { 
+            background-color: #ffa000; 
+            color: white; 
+            border: none; 
+            padding: 20px; 
+            width: 100%; 
+            font-size: 20px; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            margin-top: 30px; 
+            font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(255, 160, 0, 0.3);
+        }
+        .btn-order:active { transform: scale(0.98); }
+
+        #status-msg { margin-top: 20px; font-weight: bold; color: #5e35b1; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>مكتب الفريد للخدمات</h1>
-    <p>تطوير: أحمد الفريد - خدمات الخرسانة</p>
-    <hr>
+    <p class="sub-title">تطوير: أحمد الفريد - خدمات الخرسانة الجاهزة</p>
+    <hr style="border: 0; border-top: 1px solid #eee;">
 
-    <label>اختر عنوان التوريد:</label>
-    <select id="location">
+    <label>اختر منطقة التوريد:</label>
+    <select id="user-location">
         <option>6 أكتوبر</option>
         <option>الشيخ زايد</option>
         <option>حدائق أكتوبر</option>
     </select>
 
     <label>الكمية المطلوبة (متر مكعب):</label>
-    <input type="number" id="meters" placeholder="مثال: 50">
+    <input type="number" id="user-meters" placeholder="اضغط هنا لكتابة الكمية" min="1">
 
-    <button class="btn-order" onclick="handleOrder()">تأكيد الطلب عبر الشبكة</button>
+    <button class="btn-order" onclick="processOrder()">تأكيد الطلب عبر الشبكة</button>
 
-    <p id="status"></p>
+    <p id="status-msg"></p>
 </div>
 
 <script>
-    // تهيئة الشبكة عند فتح الصفحة
+    // 1. أمر تهيئة الشبكة عند فتح التطبيق
     Pi.init({ version: "2.0", sandbox: true });
 
-    async function handleOrder() {
-        const qty = document.getElementById('meters').value;
-        const loc = document.getElementById('location').value;
-        const status = document.getElementById('status');
+    // 2. أمر التشغيل والربط بالشبكة
+    async function processOrder() {
+        const meters = document.getElementById('user-meters').value;
+        const location = document.getElementById('user-location').value;
+        const status = document.getElementById('status-msg');
 
-        if (!qty || qty <= 0) {
-            alert("يا برنس، من فضلك أدخل الكمية المطلوبة أولاً");
+        // التأكد إن المستخدم كتب الأمتار
+        if (!meters || meters <= 0) {
+            alert("يا برنس، من فضلك اكتب عدد الأمتار المطلوب أولاً");
             return;
         }
 
-        status.innerText = "جاري الربط مع الشبكة للتحقق من الهوية...";
+        status.innerText = "جاري الاتصال بالشبكة للتحقق...";
 
         try {
             // تنفيذ أمر الربط (Authentication)
-            const auth = await Pi.authenticate(['username'], function(payment) {});
+            const auth = await Pi.authenticate(['username'], function(payment) {
+                console.log("هناك دفعة قيد المعالجة:", payment);
+            });
             
-            // إذا نجح الربط، تظهر رسالة النجاح فوراً
+            // نجاح الربط وإظهار النتيجة
             status.style.color = "green";
             status.innerText = "تم الربط بنجاح ✓";
             
-            alert("تم استلام طلبك يا برنس " + auth.user.username + "\nالكمية: " + qty + " متر\nالعنوان: " + loc);
+            alert("تم استلام طلبك بنجاح يا " + auth.user.username + "\nالكمية: " + meters + " متر مكعب\nالمنطقة: " + location);
             
         } catch (err) {
             status.style.color = "red";
-            status.innerText = "فشل الربط. تأكد من فتح التطبيق في Pi Browser وتفعيل Sandbox";
+            status.innerText = "عذراً! فشل الربط بالشبكة";
+            alert("تأكد من فتح التطبيق من متصفح Pi وتفعيل وضع Sandbox في لوحة المطورين");
             console.error(err);
         }
     }
