@@ -3,118 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخدمات الخرسانية</title>
-    
+    <title>مكتب الفريد للخدمات</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    
     <style>
-        /* تصميم واجهة مكتب الفريد الاحترافية */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; }
-        .card { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; border-top: 5px solid #ffa000; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { color: #5e35b1; margin-bottom: 5px; }
-        .subtitle { color: #555; margin-bottom: 25px; }
-        
-        /* تصميم الخانات (العنوان والمتر) */
-        label { display: block; text-align: right; margin-bottom: 5px; font-weight: bold; color: #333; }
-        input, select { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        
-        /* تصميم الأزرار */
-        .btn { background-color: #ffa000; color: white; border: none; padding: 18px; width: 100%; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn:hover { background-color: #ff8f00; }
-        .btn-order { background-color: #5e35b1; } /* لون زر الطلب */
-        .btn-order:hover { background-color: #4527a0; }
-
-        /* الأقسام المخفية */
-        #user-section, #loading { display: none; margin-top: 20px; }
-        .status-ok { color: green; font-weight: bold; font-size: 1.1em; }
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; text-align: center; padding: 20px; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-top: 8px solid #ffa000; }
+        h1 { color: #5e35b1; font-size: 24px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .btn-main { background-color: #ffa000; color: white; border: none; padding: 15px; width: 100%; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        #order-area { display: none; margin-top: 20px; }
+        .loading-text { color: #666; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>مكتب الفريد للخدمات</h1>
-        <p class="subtitle">تطوير: أحمد الفريد - خدمات الخرسانة الجاهزة</p>
+<div class="container">
+    <h1>مكتب الفريد للخدمات</h1>
+    <p>تطوير: أحمد الفريد</p>
+    <hr>
 
-        <div id="login-area">
-            <p>يرجى تسجيل الدخول عبر <b>الشبكة</b> لطلب الخدمة</p>
-            <button class="btn" onclick="login()">دخول بواسطة Pi Browser</button>
-        </div>
-
-        <div id="loading">
-            <p>جاري الاتصال بالشبكة... يرجى الانتظار</p>
-        </div>
-
-        <div id="user-section">
-            <p>أهلاً بك يا <span id="username" class="status-ok">...</span> 👋</p>
-            <p>حالة الاتصال: <span class="status-ok">متصل بالشبكة ✓</span></p>
-            <hr style="border: 0.5px solid #eee; margin: 25px 0;">
-            
-            <h3>طلب توريد خرسانة</h3>
-            
-            <label>اختر العنوان:</label>
-            <select id="location">
-                <option value="6-october">6 أكتوبر</option>
-                <option value="sheikh-zayed">الشيخ زايد</option>
-                <option value="hadayek-october">حدائق أكتوبر</option>
-            </select>
-            
-            <label>الكمية المطلوبة (متر مكعب):</label>
-            <input type="number" id="quantity" placeholder="مثال: 50" min="1">
-            
-            <button class="btn btn-order" onclick="sendOrder()">تأكيد طلب الخدمة</button>
-        </div>
+    <div id="login-section">
+        <p>اضغط للربط مع <b>الشبكة</b></p>
+        <button class="btn-main" onclick="authPi()">دخول بواسطة Pi Browser</button>
     </div>
 
-    <script>
-        // دمج الـ API Key الخاص بك للتعريف بالبرنامج
-        const MY_API_KEY = "Adyz4081zzxuaim3wgoon9xajw0rc7vlbg0jj7hagc5h0noqhovtby6q2zi033ua";
+    <div id="order-area">
+        <p style="color: green;">مرحباً بك: <b id="user-pi"></b></p>
+        
+        <label>اختر المنطقة:</label>
+        <select id="area">
+            <option>6 أكتوبر</option>
+            <option>الشيخ زايد</option>
+            <option>حدائق أكتوبر</option>
+        </select>
 
-        // تهيئة الـ SDK مع السماح بالـ Sandbox للتجربة
-        Pi.init({ version: "2.0", sandbox: true }); 
+        <label>الكمية (متر مكعب):</label>
+        <input type="number" id="meters" placeholder="مثال: 50">
 
-        async function login() {
-            // إخفاء زر الدخول وإظهار التحميل
-            document.getElementById('login-area').style.display = 'none';
-            document.getElementById('loading').style.display = 'block';
+        <button class="btn-main" style="background-color: #5e35b1;" onclick="confirmOrder()">تأكيد الطلب الآن</button>
+    </div>
 
-            try {
-                const scopes = ['username', 'payments'];
-                // دالة معالجة الدفعات المعلقة (ضرورية للـ SDK)
-                function onIncompletePaymentFound(payment) {
-                    console.log("دفعة معلقة:", payment);
-                };
+    <p id="status-msg" class="loading-text"></p>
+</div>
 
-                // عملية المصادقة
-                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                
-                // إذا نجح الاتصال: عرض بيانات المستخدم وتفعيل واجهة الطلب (المتر والعنوان)
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('user-section').style.display = 'block';
-                document.getElementById('username').innerText = auth.user.username;
-                
-                console.log("تم الربط بنجاح يا " + auth.user.username);
-                alert("تم الربط بنجاح يا " + auth.user.username + "! يمكنك الآن طلب الخدمة.");
-            } catch (err) {
-                // إذا حدث خطأ: إعادة زر الدخول وإظهار رسالة
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('login-area').style.display = 'block';
-                alert("عذراً! لم نتمكن من الربط بالشبكة. تأكد من فتح التطبيق داخل Pi Browser فقط.");
-                console.error(err);
-            }
+<script>
+    // تهيئة الـ SDK مع وضع الحماية
+    Pi.init({ version: "2.0", sandbox: true });
+
+    async function authPi() {
+        const status = document.getElementById('status-msg');
+        status.innerText = "جاري محاولة الاتصال بالشبكة...";
+        
+        try {
+            // طلب الهوية فقط (لحل مشكلة حذف الروابط)
+            const auth = await Pi.authenticate(['username'], function(payment) {
+                console.log("Payment in progress", payment);
+            });
+
+            // إذا نجح الربط
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('order-area').style.display = 'block';
+            document.getElementById('user-pi').innerText = auth.user.username;
+            status.innerText = "متصل بنجاح ✓";
+            
+        } catch (err) {
+            status.innerText = "خطأ: تأكد من تفعيل Sandbox Mode في لوحة المطورين";
+            alert("لم يكتمل الربط. يرجى التأكد أن الرابط في المتصفح مطابق تماماً لما في لوحة التحكم.");
         }
+    }
 
-        // دالة إرسال الطلب (القديمة)
-        function sendOrder() {
-            const qty = document.getElementById('quantity').value;
-            const loc = document.getElementById('location').options[document.getElementById('location').selectedIndex].text;
-            const user = document.getElementById('username').innerText;
-
-            if(qty > 0) {
-                alert("تم استلام طلبك يا " + user + " لـ " + qty + " متر مكعب في منطقة " + loc + ". سيتم التواصل معك فوراً.");
-            } else {
-                alert("يرجى إدخال الكمية المطلوبة بالمتر المكعب");
-            }
+    function confirmOrder() {
+        const m = document.getElementById('meters').value;
+        const a = document.getElementById('area').value;
+        if(m > 0) {
+            alert("تم استلام طلبك يا " + document.getElementById('user-pi').innerText + " لـ " + m + " متر في " + a);
+        } else {
+            alert("من فضلك أدخل عدد الأمتار");
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
