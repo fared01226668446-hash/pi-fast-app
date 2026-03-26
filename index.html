@@ -46,33 +46,29 @@
         const s = document.getElementById('status');
 
         if (!m || m <= 0) {
-            alert("يا برنس، أدخل الكمية أولاً");
+            alert("يا برنس، اكتب عدد الأمتار الأول");
             return;
         }
 
         s.innerText = "جاري التحقق من الهوية...";
 
         try {
-            // الربط بالشبكة أولاً لضمان الجدية
             const auth = await Pi.authenticate(['username'], function(p){});
             
             s.style.color = "green";
-            s.innerText = "تم التحقق! جاري تحويلك للواتساب...";
+            s.innerText = "تم التحقق! جاري فتح الواتساب...";
 
-            // تجهيز نص الرسالة للواتساب
-            const message = `السلام عليكم يا مكتب الفريد، أنا المستخدم (${auth.user.username}) أريد طلب خرسانة جاهزة.\nالكمية: ${m} متر مكعب\nالمنطقة: ${a}`;
+            const text = `طلب خرسانة من تطبيق الفريد\nالمستخدم: ${auth.user.username}\nالكمية: ${m} متر\nالمنطقة: ${a}`;
             
-            // رابط الواتساب الخاص برقمك
-            const whatsappUrl = `https://wa.me/201226668446?text=${encodeURIComponent(message)}`;
+            // تم تحديث الرقم هنا إلى 201551016807
+            const whatsappUrl = "https://api.whatsapp.com/send?phone=201551016807&text=" + encodeURIComponent(text);
 
-            // فتح الواتساب تلقائياً
-            setTimeout(() => {
-                window.location.href = whatsappUrl;
-            }, 1000);
+            window.open(whatsappUrl, '_blank');
+            location.href = whatsappUrl;
 
         } catch (e) {
             s.style.color = "red";
-            s.innerText = "فشل الربط! تأكد من استخدام Pi Browser";
+            s.innerText = "فشل الربط! افتح التطبيق من Pi Browser";
         }
     }
 </script>
