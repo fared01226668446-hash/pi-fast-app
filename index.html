@@ -12,7 +12,8 @@
         label { display: block; text-align: right; font-weight: bold; margin-top: 15px; }
         input, select { width: 100%; padding: 15px; margin-top: 8px; border: 2px solid #eee; border-radius: 12px; font-size: 18px; box-sizing: border-box; }
         .btn-order { background-color: #25D366; color: white; border: none; padding: 18px; width: 100%; font-size: 20px; border-radius: 15px; cursor: pointer; margin-top: 25px; font-weight: bold; }
-        #status { margin-top: 15px; font-weight: bold; color: #5e35b1; }
+        #status { margin-top: 15px; font-weight: bold; color: #5e35b1; min-height: 25px; }
+        .manual-btn { display: none; background: #5e35b1; color: white; padding: 10px; border-radius: 10px; text-decoration: none; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -32,43 +33,51 @@
     <label>الكمية (متر مكعب):</label>
     <input type="number" id="meters" placeholder="اكتب الكمية هنا" inputmode="decimal">
 
-    <button class="btn-order" onclick="handleWhatsAppOrder()">تأكيد الطلب عبر واتساب</button>
+    <button class="btn-order" id="main-btn" onclick="handleWhatsAppOrder()">تأكيد الطلب عبر واتساب</button>
 
     <div id="status"></div>
+    <a id="manual-link" class="manual-btn" target="_blank">اضغط هنا إذا لم يفتح الواتساب تلقائياً</a>
 </div>
 
 <script>
+    // تهيئة الشبكة مع وضع Sandbox لتسهيل التجربة
     Pi.init({ version: "2.0", sandbox: true });
 
     async function handleWhatsAppOrder() {
         const m = document.getElementById('meters').value;
         const a = document.getElementById('area').value;
         const s = document.getElementById('status');
+        const manual = document.getElementById('manual-link');
 
         if (!m || m <= 0) {
-            alert("يا برنس، اكتب عدد الأمتار الأول");
+            alert("يا برنس، اكتب عدد الأمتار المطلوب أولاً");
             return;
         }
 
         s.innerText = "جاري التحقق من الهوية...";
+        s.style.color = "#5e35b1";
+
+        // تجهيز الرسالة والرابط مسبقاً
+        const text = `طلب خرسانة من تطبيق الفريد\nالكمية: ${m} متر\nالمنطقة: ${a}`;
+        const whatsappUrl = "https://api.whatsapp.com/send?phone=201551016807&text=" + encodeURIComponent(text);
 
         try {
+            // محاولة الربط (هذه الخطوة قد تأخذ وقتاً في المتصفح)
             const auth = await Pi.authenticate(['username'], function(p){});
             
             s.style.color = "green";
-            s.innerText = "تم التحقق! جاري فتح الواتساب...";
-
-            const text = `طلب خرسانة من تطبيق الفريد\nالمستخدم: ${auth.user.username}\nالكمية: ${m} متر\nالمنطقة: ${a}`;
+            s.innerText = "تم التحقق بنجاح! جاري التحويل...";
             
-            // تم تحديث الرقم هنا إلى 201551016807
-            const whatsappUrl = "https://api.whatsapp.com/send?phone=201551016807&text=" + encodeURIComponent(text);
-
-            window.open(whatsappUrl, '_blank');
-            location.href = whatsappUrl;
+            // فتح الواتساب
+            window.location.href = whatsappUrl;
 
         } catch (e) {
-            s.style.color = "red";
-            s.innerText = "فشل الربط! افتح التطبيق من Pi Browser";
+            console.error(e);
+            s.style.color = "orange";
+            s.innerText = "تأخر التحقق.. يمكنك المتابعة يدوياً:";
+            // إظهار زر الفتح اليدوي في حال تأخر أو فشل الربط التلقائي
+            manual.href = whatsappUrl;
+            manual.style.display = "inline-block";
         }
     }
 </script>
