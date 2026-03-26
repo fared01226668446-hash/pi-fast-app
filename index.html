@@ -1,87 +1,22 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخدمات</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; text-align: center; padding: 20px; }
-        .container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-top: 8px solid #ffa000; }
-        h1 { color: #5e35b1; font-size: 24px; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        .btn-main { background-color: #ffa000; color: white; border: none; padding: 15px; width: 100%; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        #order-area { display: none; margin-top: 20px; }
-        .loading-text { color: #666; font-style: italic; }
-    </style>
-</head>
-<body>
+// تهيئة الـ SDK
+Pi.init({ version: "2.0", sandbox: true }); 
 
-<div class="container">
-    <h1>مكتب الفريد للخدمات</h1>
-    <p>تطوير: أحمد الفريد</p>
-    <hr>
+async function login() {
+    try {
+        // نطلب اليوزر نيم فقط في البداية لضمان سرعة الاستجابة
+        const auth = await Pi.authenticate(['username'], function(payment) {
+            console.log("Payment in progress", payment);
+        });
 
-    <div id="login-section">
-        <p>اضغط للربط مع <b>الشبكة</b></p>
-        <button class="btn-main" onclick="authPi()">دخول بواسطة Pi Browser</button>
-    </div>
-
-    <div id="order-area">
-        <p style="color: green;">مرحباً بك: <b id="user-pi"></b></p>
+        // أول ما ينجح الربط، نظهر واجهة الطلب ونخفي زر الدخول
+        document.getElementById('login-area').style.display = 'none';
+        document.getElementById('user-section').style.display = 'block';
+        document.getElementById('username').innerText = auth.user.username;
         
-        <label>اختر المنطقة:</label>
-        <select id="area">
-            <option>6 أكتوبر</option>
-            <option>الشيخ زايد</option>
-            <option>حدائق أكتوبر</option>
-        </select>
-
-        <label>الكمية (متر مكعب):</label>
-        <input type="number" id="meters" placeholder="مثال: 50">
-
-        <button class="btn-main" style="background-color: #5e35b1;" onclick="confirmOrder()">تأكيد الطلب الآن</button>
-    </div>
-
-    <p id="status-msg" class="loading-text"></p>
-</div>
-
-<script>
-    // تهيئة الـ SDK مع وضع الحماية
-    Pi.init({ version: "2.0", sandbox: true });
-
-    async function authPi() {
-        const status = document.getElementById('status-msg');
-        status.innerText = "جاري محاولة الاتصال بالشبكة...";
-        
-        try {
-            // طلب الهوية فقط (لحل مشكلة حذف الروابط)
-            const auth = await Pi.authenticate(['username'], function(payment) {
-                console.log("Payment in progress", payment);
-            });
-
-            // إذا نجح الربط
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('order-area').style.display = 'block';
-            document.getElementById('user-pi').innerText = auth.user.username;
-            status.innerText = "متصل بنجاح ✓";
-            
-        } catch (err) {
-            status.innerText = "خطأ: تأكد من تفعيل Sandbox Mode في لوحة المطورين";
-            alert("لم يكتمل الربط. يرجى التأكد أن الرابط في المتصفح مطابق تماماً لما في لوحة التحكم.");
-        }
+        console.log("تم الربط بنجاح يا برنس باسم: " + auth.user.username);
+    } catch (err) {
+        // لو حصل خطأ، نظهر تنبيه للمستخدم
+        console.error(err);
+        alert("عفواً، تأكد من فتح التطبيق من داخل Pi Browser وتفعيل وضع Sandbox");
     }
-
-    function confirmOrder() {
-        const m = document.getElementById('meters').value;
-        const a = document.getElementById('area').value;
-        if(m > 0) {
-            alert("تم استلام طلبك يا " + document.getElementById('user-pi').innerText + " لـ " + m + " متر في " + a);
-        } else {
-            alert("من فضلك أدخل عدد الأمتار");
-        }
-    }
-</script>
-
-</body>
-</html>
+}
