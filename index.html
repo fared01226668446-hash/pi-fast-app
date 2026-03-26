@@ -1,22 +1,76 @@
-// تهيئة الـ SDK
-Pi.init({ version: "2.0", sandbox: true }); 
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتب الفريد للخدمات</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f2f5; text-align: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; max-width: 450px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 8px solid #ffa000; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #ffa000; color: white; font-weight: bold; cursor: pointer; border: none; font-size: 18px; }
+        #order-form { display: none; } /* مخفي لحد ما يتم الربط */
+    </style>
+</head>
+<body>
 
-async function login() {
-    try {
-        // نطلب اليوزر نيم فقط في البداية لضمان سرعة الاستجابة
-        const auth = await Pi.authenticate(['username'], function(payment) {
-            console.log("Payment in progress", payment);
-        });
+<div class="card">
+    <h1>مكتب الفريد للخدمات</h1>
+    <p>تطوير: أحمد الفريد</p>
+    <hr>
 
-        // أول ما ينجح الربط، نظهر واجهة الطلب ونخفي زر الدخول
-        document.getElementById('login-area').style.display = 'none';
-        document.getElementById('user-section').style.display = 'block';
-        document.getElementById('username').innerText = auth.user.username;
-        
-        console.log("تم الربط بنجاح يا برنس باسم: " + auth.user.username);
-    } catch (err) {
-        // لو حصل خطأ، نظهر تنبيه للمستخدم
-        console.error(err);
-        alert("عفواً، تأكد من فتح التطبيق من داخل Pi Browser وتفعيل وضع Sandbox");
+    <div id="login-area">
+        <button onclick="login()">دخول بواسطة Pi Browser</button>
+    </div>
+
+    <div id="order-form">
+        <p>مرحباً بك: <b id="username" style="color: green;"></b></p>
+        <label>المنطقة:</label>
+        <select id="area">
+            <option>6 أكتوبر</option>
+            <option>الشيخ زايد</option>
+            <option>حدائق أكتوبر</option>
+        </select>
+        <label>الكمية (متر مكعب):</label>
+        <input type="number" id="qty" placeholder="أدخل الكمية">
+        <button style="background: #5e35b1;" onclick="sendOrder()">تأكيد الطلب</button>
+    </div>
+    
+    <p id="status" style="font-size: 12px; color: #888; margin-top: 10px;"></p>
+</div>
+
+<script>
+    // 1. أمر تهيئة الشبكة
+    Pi.init({ version: "2.0", sandbox: true });
+
+    // 2. أمر تسجيل الدخول والربط
+    async function login() {
+        document.getElementById('status').innerText = "جاري الاتصال...";
+        try {
+            const auth = await Pi.authenticate(['username'], function(p){});
+            
+            // لو نجح، نظهر أوامر التشغيل
+            document.getElementById('login-area').style.display = 'none';
+            document.getElementById('order-form').style.display = 'block';
+            document.getElementById('username').innerText = auth.user.username;
+            document.getElementById('status').innerText = "متصل ✓";
+        } catch (e) {
+            alert("خطأ! تأكد من تفعيل Sandbox Mode في لوحة المطورين");
+            document.getElementById('status').innerText = "فشل الاتصال";
+        }
     }
-}
+
+    // 3. أمر إرسال الطلب
+    function sendOrder() {
+        const q = document.getElementById('qty').value;
+        if(q > 0) {
+            alert("يا برنس، تم استلام طلبك لـ " + q + " متر. سنتواصل معك فوراً.");
+        } else {
+            alert("أدخل الكمية المطلوبة");
+        }
+    }
+</script>
+
+</body>
+</html>
