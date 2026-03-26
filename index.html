@@ -3,78 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد للخدمات</title>
+    <title>مكتب الفريد للخدمات الخرسانية</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; direction: rtl; }
-        .card { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 25px; border-top: 12px solid #ffa000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h1 { color: #5e35b1; font-size: 24px; margin-bottom: 10px; }
-        .dev-name { color: #777; font-size: 14px; margin-bottom: 20px; }
-        label { display: block; text-align: right; font-weight: bold; margin-top: 20px; color: #333; }
-        input, select { width: 100%; padding: 15px; margin-top: 10px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #5e35b1; }
-        .btn-order { background-color: #25D366; color: white; border: none; padding: 20px; width: 100%; font-size: 22px; border-radius: 15px; cursor: pointer; margin-top: 30px; font-weight: bold; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3); }
-        #status { margin-top: 20px; font-weight: bold; color: #5e35b1; font-size: 15px; min-height: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 450px; margin: auto; border-top: 5px solid #5e2a84; }
+        h1 { color: #5e2a84; font-size: 24px; margin-bottom: 10px; }
+        .user-info { background: #f8f0ff; padding: 10px; border-radius: 10px; color: #5e2a84; font-weight: bold; margin-bottom: 20px; border: 1px solid #e1d0f5; }
+        .service-box { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .btn-pi { background-color: #5e2a84; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; transition: 0.3s; margin-bottom: 10px; }
+        .btn-whatsapp { background-color: #25d366; color: white; text-decoration: none; display: block; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        .btn-pi:hover { background-color: #4a1f6a; }
+        .btn-whatsapp:hover { background-color: #128c7e; }
+        .status { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>مكتب الفريد للخدمات</h1>
-    <div class="dev-name">تطوير: أحمد الفريد</div>
-    <hr style="border:0; border-top:1px solid #eee;">
+<div class="container">
+    <h1>مكتب الفريد للخدمات الخرسانية</h1>
+    
+    <div id="user-display" class="user-info">جاري التحقق من شبكة Pi...</div>
 
-    <label>منطقة التوريد:</label>
-    <select id="area">
-        <option>6 أكتوبر</option>
-        <option>الشيخ زايد</option>
-        <option>حدائق أكتوبر</option>
-    </select>
+    <div class="service-box">
+        <p>توريد خرسانة جاهزة: 6 أكتوبر - الشيخ زايد - حدائق أكتوبر</p>
+        
+        <button class="btn-pi" onclick="transferPi()">دفع 1 Pi (تجريبي)</button>
+        
+        <a href="https://wa.me/201226668446" class="btn-whatsapp">
+            تواصل عبر الواتساب للطلب 💬
+        </a>
+    </div>
 
-    <label>الكمية (متر مكعب):</label>
-    <input type="number" id="meters" placeholder="ادخل الكمية هنا" inputmode="decimal">
-
-    <button class="btn-order" onclick="startOrder()">تأكيد الطلب عبر واتساب</button>
-
-    <div id="status"></div>
+    <div id="status" class="status"></div>
 </div>
 
 <script>
-    // إعدادات الربط المدمجة
-    const config = {
-        apiKey: "Ejarzo7pkpn4cxireinufet3qkojbziqevkaqxyjqi0p60488webc8qujyabnkeq",
-        version: "2.0",
-        sandbox: true 
-    };
+    // تهيئة الـ SDK
+    const Pi = window.Pi;
+    Pi.init({ version: "2.0", sandbox: true });
 
-    // تهيئة التطبيق
-    Pi.init(config);
+    // الـ API Key الخاص بك (تم دمجه هنا للضرورة في مرحلة الاختبار)
+    const MY_API_KEY = "vlanhm8y9vhbv3fjrv59u82nm78uofgrbimzp2doyt47kfu7dqsh91avwgz6ndqm";
 
-    function startOrder() {
-        const m = document.getElementById('meters').value;
-        const a = document.getElementById('area').value;
-        const s = document.getElementById('status');
-
-        if (!m || m <= 0) {
-            alert("يا برنس أحمد، يرجى كتابة الكمية المطلوبة أولاً");
-            return;
-        }
-
-        s.innerText = "جاري فتح الواتساب الآن...";
-
-        // تجهيز بيانات الواتساب ورقمك 01551016807
-        const myNumber = "201551016807";
-        const textMsg = `طلب خرسانة من تطبيق الفريد\nالكمية: ${m} متر\nالمنطقة: ${a}`;
-        const finalUrl = "https://api.whatsapp.com/send?phone=" + myNumber + "&text=" + encodeURIComponent(textMsg);
-
-        // فتح الواتساب فوراً (بدون انتظار رد الشبكة عشان ميعلقش)
-        window.location.assign(finalUrl);
-        
-        // محاولة التحقق في الخلفية دون تعطيل المستخدم
+    async function authenticateUser() {
         try {
-            Pi.authenticate(['username'], function(p){});
-        } catch (e) {}
+            const scopes = ['payments', 'username'];
+            const user = await Pi.authenticate(scopes, onIncompletePaymentFound);
+            document.getElementById('user-display').innerText = `مرحباً بك: ${user.user.username}`;
+        } catch (err) {
+            document.getElementById('user-display').innerText = "يرجى فتح التطبيق من متصفح Pi";
+        }
     }
+
+    function onIncompletePaymentFound(payment) {
+        console.log("دفع معلق:", payment);
+    }
+
+    async function transferPi() {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerText = "جاري الاتصال بالمحفظة...";
+
+        try {
+            const payment = await Pi.createPayment({
+                amount: 1.0,
+                memo: "طلب توريد خرسانة - مكتب الفريد",
+                metadata: { order_type: "concrete", apiKeyUsed: MY_API_KEY.substring(0,5) },
+            }, {
+                onReadyForServerApproval: (paymentId) => {
+                    statusDiv.innerText = "في انتظار موافقة الشبكة...";
+                    // هنا يتم إرسال الـ paymentId و MY_API_KEY للسيرفر عادةً
+                },
+                onReadyForServerCompletion: (paymentId, txid) => {
+                    statusDiv.style.color = "green";
+                    statusDiv.innerText = "تم الدفع بنجاح! رقم العملية: " + txid.substring(0, 8);
+                },
+                onCancel: (paymentId) => {
+                    statusDiv.style.color = "orange";
+                    statusDiv.innerText = "تم إلغاء العملية.";
+                },
+                onError: (error, payment) => {
+                    statusDiv.style.color = "red";
+                    statusDiv.innerText = "حدث خطأ في الدفع.";
+                },
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    authenticateUser();
 </script>
 
 </body>
