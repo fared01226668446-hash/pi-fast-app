@@ -40,7 +40,7 @@
 </div>
 
 <script>
-    // إعدادات الربط المدمجة (الاستضافة + المفتاح)
+    // إعدادات الربط المدمجة
     const config = {
         apiKey: "Ejarzo7pkpn4cxireinufet3qkojbziqevkaqxyjqi0p60488webc8qujyabnkeq",
         version: "2.0",
@@ -50,7 +50,7 @@
     // تهيئة التطبيق
     Pi.init(config);
 
-    async function startOrder() {
+    function startOrder() {
         const m = document.getElementById('meters').value;
         const a = document.getElementById('area').value;
         const s = document.getElementById('status');
@@ -60,27 +60,20 @@
             return;
         }
 
-        s.innerText = "جاري التحقق عبر شبكة Pi...";
+        s.innerText = "جاري فتح الواتساب الآن...";
 
-        // تجهيز بيانات الواتساب
+        // تجهيز بيانات الواتساب ورقمك 01551016807
         const myNumber = "201551016807";
         const textMsg = `طلب خرسانة من تطبيق الفريد\nالكمية: ${m} متر\nالمنطقة: ${a}`;
         const finalUrl = "https://api.whatsapp.com/send?phone=" + myNumber + "&text=" + encodeURIComponent(textMsg);
 
+        // فتح الواتساب فوراً (بدون انتظار رد الشبكة عشان ميعلقش)
+        window.location.assign(finalUrl);
+        
+        // محاولة التحقق في الخلفية دون تعطيل المستخدم
         try {
-            // محاولة التحقق الرسمي من هوية المستخدم (Authentication)
-            const auth = await Pi.authenticate(['username'], function(p){
-                console.log("User verified: " + p.user.username);
-            });
-
-            s.innerText = "تم التحقق! جاري فتح الواتساب...";
-            window.location.href = finalUrl;
-
-        } catch (error) {
-            // في حالة أي مشكلة في الشبكة، يتم التحويل للواتساب مباشرة لضمان عدم ضياع الطلب
-            console.log("التحويل المباشر للواتساب...");
-            window.location.href = finalUrl;
-        }
+            Pi.authenticate(['username'], function(p){});
+        } catch (e) {}
     }
 </script>
 
