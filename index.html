@@ -6,20 +6,22 @@
     <title>مكتب الفريد للخدمات</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f4f7f9; text-align: center; padding: 20px; direction: rtl; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 20px; border-top: 10px solid #ffa000; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        h1 { color: #5e35b1; margin-bottom: 5px; }
-        label { display: block; text-align: right; font-weight: bold; margin-top: 15px; }
-        input, select { width: 100%; padding: 15px; margin-top: 8px; border: 2px solid #eee; border-radius: 12px; font-size: 18px; box-sizing: border-box; }
-        .btn-order { background-color: #25D366; color: white; border: none; padding: 18px; width: 100%; font-size: 20px; border-radius: 15px; cursor: pointer; margin-top: 25px; font-weight: bold; }
-        #status { margin-top: 15px; font-weight: bold; color: #5e35b1; font-size: 14px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; direction: rtl; }
+        .card { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 25px; border-top: 12px solid #ffa000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: #5e35b1; font-size: 24px; margin-bottom: 10px; }
+        .dev-name { color: #777; font-size: 14px; margin-bottom: 20px; }
+        label { display: block; text-align: right; font-weight: bold; margin-top: 20px; color: #333; }
+        input, select { width: 100%; padding: 15px; margin-top: 10px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #5e35b1; }
+        .btn-order { background-color: #25D366; color: white; border: none; padding: 20px; width: 100%; font-size: 22px; border-radius: 15px; cursor: pointer; margin-top: 30px; font-weight: bold; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3); }
+        #status { margin-top: 20px; font-weight: bold; color: #5e35b1; font-size: 15px; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>مكتب الفريد للخدمات</h1>
-    <p style="color: #888;">تطوير: أحمد الفريد</p>
+    <div class="dev-name">تطوير: أحمد الفريد</div>
     <hr style="border:0; border-top:1px solid #eee;">
 
     <label>منطقة التوريد:</label>
@@ -30,51 +32,54 @@
     </select>
 
     <label>الكمية (متر مكعب):</label>
-    <input type="number" id="meters" placeholder="اكتب الكمية هنا" inputmode="decimal">
+    <input type="number" id="meters" placeholder="ادخل الكمية هنا" inputmode="decimal">
 
-    <button class="btn-order" onclick="sendToWhatsApp()">تأكيد الطلب عبر واتساب</button>
+    <button class="btn-order" onclick="startOrder()">تأكيد الطلب عبر واتساب</button>
 
     <div id="status"></div>
 </div>
 
 <script>
-    // 1. دمج إعدادات التطبيق ومفتاح الـ API الجديد
+    // إعدادات الربط المدمجة (الاستضافة + المفتاح)
     const config = {
         apiKey: "Ejarzo7pkpn4cxireinufet3qkojbziqevkaqxyjqi0p60488webc8qujyabnkeq",
         version: "2.0",
         sandbox: true 
     };
 
-    // تهيئة شبكة Pi
+    // تهيئة التطبيق
     Pi.init(config);
 
-    async function sendToWhatsApp() {
+    async function startOrder() {
         const m = document.getElementById('meters').value;
         const a = document.getElementById('area').value;
         const s = document.getElementById('status');
 
         if (!m || m <= 0) {
-            alert("يا برنس أحمد، فضلاً اكتب الكمية أولاً");
+            alert("يا برنس أحمد، يرجى كتابة الكمية المطلوبة أولاً");
             return;
         }
 
-        s.innerText = "جاري الاتصال بالشبكة وتجهيز الواتساب...";
+        s.innerText = "جاري التحقق عبر شبكة Pi...";
 
-        // 2. دمج الرسالة ورقم الواتساب الخاص بك
-        const phoneNumber = "201551016807";
-        const message = `طلب خرسانة جديد من تطبيق الفريد\nالكمية: ${m} متر\nالمنطقة: ${a}`;
-        const whatsappUrl = "https://api.whatsapp.com/send?phone=" + phoneNumber + "&text=" + encodeURIComponent(message);
+        // تجهيز بيانات الواتساب
+        const myNumber = "201551016807";
+        const textMsg = `طلب خرسانة من تطبيق الفريد\nالكمية: ${m} متر\nالمنطقة: ${a}`;
+        const finalUrl = "https://api.whatsapp.com/send?phone=" + myNumber + "&text=" + encodeURIComponent(textMsg);
 
         try {
-            // محاولة التحقق من اليوزر لضمان الجدية (اختياري وسريع)
-            await Pi.authenticate(['username'], function(p){});
-            
-            // فتح الواتساب مباشرة
-            window.location.href = whatsappUrl;
+            // محاولة التحقق الرسمي من هوية المستخدم (Authentication)
+            const auth = await Pi.authenticate(['username'], function(p){
+                console.log("User verified: " + p.user.username);
+            });
 
-        } catch (e) {
-            // إذا حدث أي تأخير في الشبكة، يفتح الواتساب فوراً كخطة بديلة
-            window.location.href = whatsappUrl;
+            s.innerText = "تم التحقق! جاري فتح الواتساب...";
+            window.location.href = finalUrl;
+
+        } catch (error) {
+            // في حالة أي مشكلة في الشبكة، يتم التحويل للواتساب مباشرة لضمان عدم ضياع الطلب
+            console.log("التحويل المباشر للواتساب...");
+            window.location.href = finalUrl;
         }
     }
 </script>
