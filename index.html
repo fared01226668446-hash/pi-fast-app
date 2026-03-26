@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -10,74 +9,58 @@
     
     <style>
         body { font-family: Arial, sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; }
-        .card { max-width: 500 shadow: 0 4px 8px rgba(0,0,0,0.1); margin: auto; background: white; padding: 30px; border-radius: 15px; border-top: 5px solid #ffa000; }
-        h1 { color: #5e35b1; margin-bottom: 5px; }
-        .subtitle { color: #555; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        .btn { background-color: #ffa000; color: white; border: none; padding: 15px; width: 100%; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .btn:hover { background-color: #ff8f00; }
-        #user-section { display: none; margin-top: 20px; background: #f9f9f9; padding: 15px; border-radius: 10px; }
-        .status-ok { color: green; font-weight: bold; }
+        .card { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; border-top: 5px solid #ffa000; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #5e35b1; }
+        .btn { background-color: #ffa000; color: white; border: none; padding: 15px; width: 100%; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        #user-section { display: none; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h1>مكتب الفريد للخدمات</h1>
-        <p class="subtitle">تطوير: أحمد الفريد - لخدمات الخرسانة الجاهزة</p>
+        <p>تطوير: أحمد الفريد</p>
 
         <div id="login-area">
-            <p>يرجى تسجيل الدخول عبر <b>الشبكة</b> لطلب الخدمة</p>
+            <p>اضغط للربط مع <b>الشبكة</b></p>
             <button class="btn" onclick="login()">دخول بواسطة Pi Browser</button>
         </div>
 
         <div id="user-section">
-            <p>أهلاً بك: <span id="username" class="status-ok">...</span></p>
-            <hr>
-            <h3>طلب خرسانة جاهزة</h3>
-            <select id="location">
-                <option value="october">6 أكتوبر / حدائق أكتوبر</option>
-                <option value="zayed">الشيخ زايد</option>
-            </select>
-            <input type="number" id="quantity" placeholder="الكمية (متر مكعب)">
-            <button class="btn" style="background-color: #5e35b1;" onclick="sendOrder()">تأكيد طلب الخدمة</button>
+            <p>أهلاً بك: <span id="username" style="color: green; font-weight: bold;">...</span></p>
+            <p>منطقة الخدمة: 6 أكتوبر / الشيخ زايد</p>
+            <button class="btn" style="background-color: #5e35b1;">طلب خرسانة جاهزة</button>
         </div>
     </div>
 
     <script>
-        // دمج الـ API Key الخاص بك للتعريف بالبرنامج
-        const MY_API_KEY = "Adyz4081zzxuaim3wgoon9xajw0rc7vlbg0jj7hagc5h0noqhovtby6q2zi033ua";
-
-        // تهيئة الـ SDK
-        Pi.init({ version: "2.0", sandbox: true }); 
+        // تهيئة الـ SDK مع السماح بالـ Sandbox
+        Pi.init({ version: "2.0", sandbox: true });
 
         async function login() {
+            console.log("محاولة تسجيل الدخول...");
             try {
                 const scopes = ['username', 'payments'];
-                function onIncompletePaymentFound(payment) { /* للتعامل مع الدفعات المعلقة */ }
+                
+                // دالة معالجة الدفعات المعلقة (إجبارية للـ SDK)
+                function onIncompletePaymentFound(payment) {
+                    console.log("هناك دفعة معلقة:", payment);
+                };
 
-                // عملية المصادقة
+                // محاولة المصادقة
                 const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
                 
-                // عرض بيانات المستخدم وتفعيل واجهة الطلب
+                // إذا نجح الاتصال
                 document.getElementById('login-area').style.display = 'none';
                 document.getElementById('user-section').style.display = 'block';
                 document.getElementById('username').innerText = auth.user.username;
                 
-                console.log("تم الربط بنجاح باستخدام المفتاح: " + MY_API_KEY);
+                alert("تم الربط بنجاح يا " + auth.user.username);
+                
             } catch (err) {
-                alert("يرجى فتح الرابط من داخل تطبيق Pi Browser");
-                console.error(err);
-            }
-        }
-
-        function sendOrder() {
-            const qty = document.getElementById('quantity').value;
-            const loc = document.getElementById('location').value;
-            if(qty > 0) {
-                alert("تم استلام طلبك لـ " + qty + " متر في " + loc + ". سيتم التواصل معك يا " + document.getElementById('username').innerText);
-            } else {
-                alert("يرجى إدخال الكمية المطلوبة");
+                // إذا حدث خطأ، سيعطيك رسالة واضحة بالسبب
+                alert("عذراً! لم نتمكن من الربط بالشبكة. تأكد من فتح التطبيق داخل Pi Browser فقط.");
+                console.error("Error details:", err);
             }
         }
     </script>
