@@ -12,7 +12,7 @@
         label { display: block; text-align: right; font-weight: bold; margin-top: 15px; }
         input, select { width: 100%; padding: 15px; margin-top: 8px; border: 2px solid #eee; border-radius: 12px; font-size: 18px; box-sizing: border-box; }
         .btn-order { background-color: #25D366; color: white; border: none; padding: 18px; width: 100%; font-size: 20px; border-radius: 15px; cursor: pointer; margin-top: 25px; font-weight: bold; }
-        #status { margin-top: 15px; font-weight: bold; color: #5e35b1; }
+        #status { margin-top: 15px; font-weight: bold; color: #5e35b1; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -38,34 +38,44 @@
 </div>
 
 <script>
-    // تهيئة SDK
-    Pi.init({ version: "2.0", sandbox: true });
+    // 1. دمج إعدادات التطبيق ومفتاح الـ API الجديد
+    const config = {
+        apiKey: "Ejarzo7pkpn4cxireinufet3qkojbziqevkaqxyjqi0p60488webc8qujyabnkeq",
+        version: "2.0",
+        sandbox: true 
+    };
 
-    function sendToWhatsApp() {
+    // تهيئة شبكة Pi
+    Pi.init(config);
+
+    async function sendToWhatsApp() {
         const m = document.getElementById('meters').value;
         const a = document.getElementById('area').value;
         const s = document.getElementById('status');
 
         if (!m || m <= 0) {
-            alert("يا برنس، اكتب عدد الأمتار الأول");
+            alert("يا برنس أحمد، فضلاً اكتب الكمية أولاً");
             return;
         }
 
-        s.innerText = "جاري فتح الواتساب...";
+        s.innerText = "جاري الاتصال بالشبكة وتجهيز الواتساب...";
 
-        // تجهيز الرسالة
-        const text = `طلب خرسانة جديد\nالكمية: ${m} متر\nالمنطقة: ${a}`;
-        
-        // الرقم مدمج هنا مباشرة: 201551016807
-        const whatsappUrl = "https://api.whatsapp.com/send?phone=201551016807&text=" + encodeURIComponent(text);
+        // 2. دمج الرسالة ورقم الواتساب الخاص بك
+        const phoneNumber = "201551016807";
+        const message = `طلب خرسانة جديد من تطبيق الفريد\nالكمية: ${m} متر\nالمنطقة: ${a}`;
+        const whatsappUrl = "https://api.whatsapp.com/send?phone=" + phoneNumber + "&text=" + encodeURIComponent(message);
 
-        // محاولة التحقق السريع من اليوزر (اختياري لضمان السرعة)
         try {
-            Pi.authenticate(['username'], function(p){});
-        } catch(e) {}
+            // محاولة التحقق من اليوزر لضمان الجدية (اختياري وسريع)
+            await Pi.authenticate(['username'], function(p){});
+            
+            // فتح الواتساب مباشرة
+            window.location.href = whatsappUrl;
 
-        // فتح الواتساب فوراً بدون انتظار طويل
-        window.location.href = whatsappUrl;
+        } catch (e) {
+            // إذا حدث أي تأخير في الشبكة، يفتح الواتساب فوراً كخطة بديلة
+            window.location.href = whatsappUrl;
+        }
     }
 </script>
 
