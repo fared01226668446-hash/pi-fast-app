@@ -3,36 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - توريد خرسانة جاهزة</title>
+    <title>مكتب الفريد - بوابة التوريد الرقمية DeFi</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root { --primary: #2c3e50; --secondary: #3498db; --success: #27ae60; --whatsapp: #25D366; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em; }
-        
-        #invoice-section { display: none; margin-top: 20px; border-top: 2px dashed #ddd; padding-top: 20px; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* الألوان الجديدة: الموف Pi والأصفر الذهبي */
+        :root { 
+            --primary-purple: #6a1b9a; /* موف Pi الغامق */
+            --accent-purple: #9c27b0; /* موف Pi الفاتح للمؤثرات */
+            --pi-yellow: #fbc02d; /* أصفر ذهبي للعمليات والنجاح */
+            --whatsapp-green: #25D366; 
+            --text-dark: #212121;
+            --background: #f4f7f6;
+        }
 
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1em; transition: 0.3s; margin-top: 10px; text-decoration: none; display: inline-block; text-align: center; box-sizing: border-box; }
-        .btn-pay { background: var(--secondary); color: white; }
-        .btn-whatsapp { background: var(--whatsapp); color: white; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
-        .btn-download { background: #f8f9fa; color: #2c3e50; border: 1px solid #ddd; }
-        
-        .hash-box { background: #f8f9fa; border: 1px solid #eee; padding: 10px; font-family: monospace; font-size: 0.75em; word-break: break-all; color: #e67e22; border-radius: 5px; margin-top: 10px; }
-        .legal-note { font-size: 0.72em; color: #7f8c8d; text-align: center; margin-top: 20px; padding: 10px; background: #fafafa; border-radius: 5px; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--background); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+        }
+
+        .app-container { 
+            width: 100%; 
+            max-width: 480px; 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 12px 35px rgba(106, 27, 154, 0.1); 
+            overflow: hidden; 
+            position: relative;
+        }
+
+        .header { 
+            background-color: var(--primary-purple); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            position: relative;
+        }
+
+        .header h2 { margin: 0; font-size: 1.6em; font-weight: bold; }
+        .header p { margin: 8px 0 0; font-size: 0.95em; opacity: 0.8; }
+
+        .content { padding: 30px; }
+
+        /* نموذج الطلب */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary-purple); font-size: 0.95em; }
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #eee; 
+            border-radius: 10px; 
+            box-sizing: border-box; 
+            font-size: 1em; 
+            transition: 0.3s; 
+        }
+        input:focus { border-color: var(--pi-yellow); outline: none; box-shadow: 0 0 10px rgba(251, 192, 45, 0.1); }
+        input[readonly] { background-color: #f9f9f9; color: var(--success-green); font-weight: bold; }
+
+        /* الأزرار المحسنة */
+        .btn { 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 1.1em; 
+            transition: 0.3s; 
+            margin-top: 15px; 
+            text-decoration: none; 
+            display: inline-block; 
+            text-align: center; 
+            box-sizing: border-box; 
+        }
+
+        .btn-pay { 
+            background-color: var(--pi-yellow); 
+            color: var(--primary-purple); 
+            box-shadow: 0 5px 15px rgba(251, 192, 45, 0.2);
+        }
+        .btn-pay:hover { background-color: #f9a825; transform: translateY(-2px); }
+
+        .btn-whatsapp { 
+            background-color: var(--whatsapp-green); 
+            color: white; 
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.2);
+        }
+        .btn-whatsapp:hover { background-color: #1eb954; transform: translateY(-2px); }
+
+        .btn-download { 
+            background-color: white; 
+            color: var(--text-dark); 
+            border: 2px solid #ddd; 
+        }
+        .btn-download:hover { background-color: #f9f9f9; border-color: #ccc; }
+
+        /* قسم الفاتورة */
+        #invoice-section { 
+            display: none; 
+            animation: fadeIn 0.6s ease-out; 
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .success-icon { font-size: 2em; color: var(--pi-yellow); text-align: center; margin-bottom: 10px; }
+
+        .hash-label { font-size: 0.85em; color: var(--primary-purple); font-weight: bold; margin-bottom: 5px; display: block; }
+        .hash-box { 
+            background: #fdfefe; 
+            border: 1px dashed var(--pi-yellow); 
+            padding: 12px; 
+            font-family: monospace; 
+            font-size: 0.8em; 
+            word-break: break-all; 
+            color: var(--pi-yellow); 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+        }
+
+        /* الملاحظة القانونية */
+        .legal-note { 
+            font-size: 0.72em; 
+            color: #7f8c8d; 
+            text-align: center; 
+            margin-top: 30px; 
+            padding: 15px; 
+            background: #fafafa; 
+            border-radius: 10px; 
+            border: 1px solid #eee; 
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="header">
-        <h2 style="margin:0;">مكتب الفريد (AlFareed)</h2>
-        <p style="margin:5px 0 0; font-size:0.9em; opacity:0.9;">بوابة التوريد الرقمية - خرسانة جاهزة</p>
+        <h2>مكتب الفريد (AlFareed)</h2>
+        <p>بوابة التوريد الرقمية - خرسانة جاهزة</p>
     </div>
 
     <div class="content">
@@ -47,18 +159,19 @@
             </div>
             <div class="form-group">
                 <label>الإجمالي بـ Pi</label>
-                <input type="text" id="totalPrice" readonly style="background:#f9f9f9; color:var(--success); font-weight:bold;">
+                <input type="text" id="totalPrice" readonly style="color:#27ae60;">
             </div>
-            <button class="btn btn-pay" onclick="requestPayment()">تأكيد الدفع عبر Pi Network</button>
+            <button class="btn btn-pay" onclick="processPayment()">تأكيد الدفع عبر Pi Network</button>
         </div>
 
         <div id="invoice-section">
-            <h3 style="text-align:center; color:var(--success); margin-top:0;">✅ تمت العملية بنجاح</h3>
+            <div class="success-icon">✅</div>
+            <h3 style="text-align:center; color:var(--primary-purple); margin:0 0 20px 0;">تمت العملية بنجاح</h3>
             
-            <div style="font-size: 0.85em; color: #2c3e50; font-weight: bold;">Blockchain Transaction ID:</div>
+            <span class="hash-label">:Blockchain Transaction ID</span>
             <div class="hash-box" id="txHash">pi_tx_hash_ready_mix_2026_verified...</div>
             
-            <p style="text-align:center; font-size:1em; color:#34495e; margin:20px 0 10px 0;">تواصل الآن لإرسال الموقع للمكتب:</p>
+            <p style="text-align:center; font-size:1em; color:var(--text-dark); margin:20px 0 10px 0;">تواصل الآن لإرسال الموقع للمكتب:</p>
             
             <a href="https://wa.me/201551016807?text=تم%20دفع%20طلب%20الخرسانة%20عبر%20تطبيق%20الفريد.%20يرجى%20تأكيد%20التوريد." 
                target="_blank" 
@@ -89,7 +202,7 @@
         document.getElementById('totalPrice').value = (qty * 5).toFixed(2) + " Pi";
     }
 
-    function requestPayment() {
+    function processPayment() {
         const proj = document.getElementById('projName').value;
         if(!proj || !document.getElementById('quantity').value) { 
             alert("يرجى إدخال اسم المشروع والكمية"); 
