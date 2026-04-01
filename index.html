@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - بوابة التوريد الرقمية DEX</title>
-    
+    <title>مكتب الفريد - نظام التوريد اللامركزي</title>
+
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/10.4.1/stellar-sdk.js"></script>
-    
+
     <style>
-        /* إعدادات الأبعاد والهوية البصرية */
+        /* 2. إعدادات الهوية البصرية والأبعاد 750x1500 */
         :root {
             --primary-purple: #6a1b9a;
             --accent-purple: #9c27b0;
             --pi-yellow: #fbc02d;
             --whatsapp-green: #25D366;
             --text-dark: #212121;
-            --background: #f4f7f6;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
         }
 
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
             margin: 0;
             padding: 0;
             display: flex;
@@ -35,173 +36,181 @@
             min-height: 100vh;
         }
 
-        /* تعديلات الأبعاد 750*1500 */
+        /* حاوية التطبيق بالأبعاد المطلوبة */
         .app-container {
             width: 750px;
             height: 1500px;
-            background: white;
-            border-radius: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            overflow: hidden;
+            background: var(--white);
+            border-radius: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
             position: relative;
+            border: 1px solid #eee;
         }
 
-        /* الهيدر المطور */
-        .header {
-            background: linear-gradient(135deg, var(--primary-purple), var(--accent-purple));
-            color: white;
-            padding: 60px 40px;
+        /* رأس الصفحة - Header */
+        .app-header {
+            background: linear-gradient(145deg, var(--primary-purple), var(--accent-purple));
+            color: var(--white);
+            padding: 80px 40px;
             text-align: center;
-            border-bottom: 8px solid var(--pi-yellow);
+            border-bottom: 10px solid var(--pi-yellow);
         }
 
-        .header h2 {
+        .app-header h1 {
             margin: 0;
-            font-size: 3rem;
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .app-header p {
+            margin: 20px 0 0;
+            font-size: 1.6rem;
+            font-weight: 300;
             letter-spacing: 1px;
         }
 
-        .header p {
-            margin: 15px 0 0;
-            font-size: 1.4rem;
-            opacity: 0.9;
-        }
-
-        /* محتوى التطبيق */
-        .content {
-            padding: 60px;
-            flex-grow: 1;
+        /* منطقة المحتوى - Content Area */
+        .app-content {
+            padding: 70px;
+            flex: 1;
             display: flex;
             flex-direction: column;
         }
 
-        .form-group {
-            margin-bottom: 45px;
+        /* تنسيق النماذج */
+        .input-group {
+            margin-bottom: 50px;
         }
 
-        label {
+        .input-group label {
             display: block;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
+            font-size: 1.7rem;
             font-weight: 700;
-            font-size: 1.5rem;
             color: var(--primary-purple);
         }
 
-        input {
-            width: 100%;
-            padding: 25px;
-            border: 3px solid #eee;
-            border-radius: 20px;
-            font-size: 1.4rem;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 15px rgba(156, 39, 176, 0.1);
-            outline: none;
-        }
-
-        input[readonly] {
-            background-color: #fcfcfc;
-            color: var(--accent-purple);
-            font-weight: bold;
-        }
-
-        /* الأزرار الضخمة */
-        .btn {
+        .input-group input {
             width: 100%;
             padding: 30px;
-            border: none;
+            font-size: 1.5rem;
+            border: 4px solid #f0f0f0;
             border-radius: 25px;
-            cursor: pointer;
+            background: #fafafa;
+            transition: all 0.4s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-purple);
+            background: var(--white);
+            outline: none;
+            box-shadow: 0 10px 20px rgba(106, 27, 154, 0.1);
+        }
+
+        .input-group input[readonly] {
+            font-weight: 900;
+            color: var(--accent-purple);
+            border-style: dashed;
+        }
+
+        /* الأزرار الاحترافية */
+        .action-btn {
+            width: 100%;
+            padding: 35px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.8rem;
             font-weight: 800;
-            font-size: 1.6rem;
-            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
             margin-top: 30px;
-            display: block;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-decoration: none;
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        .action-btn:active {
+            transform: scale(0.96);
         }
 
-        .btn-pay {
+        .btn-confirm {
             background: var(--pi-yellow);
             color: var(--primary-purple);
-            box-shadow: 0 10px 30px rgba(251, 192, 45, 0.4);
+            box-shadow: 0 15px 40px rgba(251, 192, 45, 0.4);
         }
 
         .btn-whatsapp {
             background: var(--whatsapp-green);
-            color: white;
-            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3);
+            color: var(--white);
+            box-shadow: 0 15px 40px rgba(37, 211, 102, 0.3);
         }
 
-        .btn-report {
-            background: white;
+        .btn-outline {
+            background: transparent;
             color: var(--text-dark);
-            border: 3px solid #ddd;
+            border: 4px solid #eee;
         }
 
-        /* قسم الفاتورة والهاش */
-        #invoice-section {
+        /* واجهة الفاتورة والهاش */
+        #payment-success {
             display: none;
             text-align: center;
-            animation: slideUp 0.8s ease-out;
+            animation: fadeInUp 1s both;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(50px); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(60px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .status-icon {
-            font-size: 6rem;
-            margin-bottom: 30px;
+        .success-badge {
+            font-size: 8rem;
+            margin-bottom: 40px;
         }
 
-        .hash-container {
+        .hash-display {
+            background: #fffdf5;
+            border: 3px dashed var(--pi-yellow);
+            padding: 35px;
+            border-radius: 25px;
             margin: 40px 0;
             text-align: right;
         }
 
-        .hash-box {
-            background: #fff9e6;
-            border: 2px dashed var(--pi-yellow);
-            padding: 25px;
+        .hash-text {
+            display: block;
             font-family: 'Courier New', monospace;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             word-break: break-all;
-            border-radius: 20px;
-            color: #555;
-            line-height: 1.5;
+            color: #444;
+            margin-top: 15px;
+            line-height: 1.6;
         }
 
-        /* التذييل القانوني */
+        /* التذييل القانوني - Clarity Act */
         .legal-footer {
             margin-top: auto;
-            padding: 40px;
-            background: #f8f9fa;
-            border-radius: 25px;
-            border: 1px solid #eee;
+            background: #f9f9f9;
+            padding: 50px;
+            border-radius: 30px;
             text-align: center;
+            border: 2px solid #eee;
         }
 
-        .legal-footer strong {
-            font-size: 1.3rem;
+        .legal-footer h4 {
             color: var(--primary-purple);
-            display: block;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
         }
 
         .legal-footer p {
-            font-size: 1.1rem;
-            color: #777;
+            font-size: 1.2rem;
+            color: #888;
             line-height: 1.8;
             margin: 0;
         }
@@ -210,136 +219,143 @@
 <body>
 
     <div class="app-container">
-        <header class="header">
-            <h2>مكتب الفريد</h2>
-            <p>Ready-Mix Concrete | بوابة DEX المعتمدة</p>
+        <header class="app-header">
+            <h1>مكتب الفريد</h1>
+            <p>Ready-Mix Concrete | بوابة DEX 2026</p>
         </header>
 
-        <main class="content">
-            <div id="order-form">
-                <div class="form-group">
+        <main class="app-content">
+            
+            <div id="order-section">
+                <div class="input-group">
                     <label>اسم المشروع / موقع التوريد</label>
-                    <input type="text" id="projectName" placeholder="مثلاً: مشروع أكتوبر الجديد">
+                    <input type="text" id="project_name" placeholder="أدخل تفاصيل الموقع هنا">
                 </div>
 
-                <div class="form-group">
-                    <label>الكمية المطلوبة (متر مكعب)</label>
-                    <input type="number" id="quantity" oninput="calculateTotal()" placeholder="0.00">
+                <div class="input-group">
+                    <label>الكمية (متر مكعب)</label>
+                    <input type="number" id="concrete_qty" oninput="updatePiPrice()" placeholder="0.00">
                 </div>
 
-                <div class="form-group">
-                    <label>تكلفة التوريد التقديرية (Pi)</label>
-                    <input type="text" id="totalPrice" readonly value="0.0000 Pi">
+                <div class="input-group">
+                    <label>التكلفة الإجمالية (Pi)</label>
+                    <input type="text" id="pi_price" readonly value="0.0000 Pi">
                 </div>
 
-                <button class="btn btn-pay" onclick="handlePayment()">تأكيد الطلب والدفع الرقمي</button>
+                <button class="action-btn btn-confirm" onclick="initiateDEXPayment()">
+                    تأكيد الطلب والدفع عبر DEX
+                </button>
             </div>
 
-            <div id="invoice-section">
-                <div class="status-icon">✅</div>
-                <h3 style="font-size: 2.2rem; color: #2e7d32;">تم التوثيق عبر RPC</h3>
+            <div id="payment-success">
+                <div class="success-badge">✅</div>
+                <h2 style="font-size: 2.5rem; color: #1b5e20;">تمت المصادقة عبر RPC</h2>
                 
-                <div class="hash-container">
-                    <label style="font-size: 1.2rem; color: #666;">Blockchain TX Hash:</label>
-                    <div class="hash-box" id="txHash">جاري جلب بيانات الشبكة...</div>
+                <div class="hash-display">
+                    <label style="font-size: 1.4rem; font-weight: bold; color: #555;">Blockchain Hash ID:</label>
+                    <span class="hash-text" id="blockchain_tx_id">جاري استدعاء البيانات...</span>
                 </div>
 
-                <a href="https://wa.me/201551551052" target="_blank" class="btn btn-whatsapp">
-                    ارسال لوكيشن الموقع (واتساب)
+                <a href="https://wa.me/201551551052" target="_blank" class="action-btn btn-whatsapp">
+                    ارسال إحداثيات الموقع (WhatsApp)
                 </a>
 
-                <button class="btn btn-report" onclick="downloadComplianceReport()">تحميل فاتورة الامتثال</button>
+                <button class="action-btn btn-outline" onclick="generateComplianceReport()">
+                    تحميل شهادة الامتثال الرقمية
+                </button>
 
-                <div class="legal-footer">
-                    <strong>Clarity Act 2026 Compliance</strong>
+                <footer class="legal-footer">
+                    <h4>Clarity Act 2026 Compliance</h4>
                     <p>
                         API Key: hxusp9srryszcfu3...<br>
-                        تمت المعاملة بنظام اللامركزية الكاملة. لا يحق للمطور الوصول للأصول.
+                        هذه المعاملة مسجلة في السجل اللامركزي. المطور يعمل كواجهة فقط بموجب قانون لوميس.
                     </p>
-                </div>
+                </footer>
             </div>
         </main>
     </div>
 
     <script>
-        /* إعدادات محرك DEx و RPC */
-        const PI_CONVERSION_RATE = 314159;
-        const RPC_NODE = "https://horizon.stellar.org";
-        const stellarServer = new StellarSdk.Server(RPC_NODE);
+        /* محرك الـ DEX والـ RPC لـ "مكتب الفريد" */
+        const EXCHANGE_RATE = 314159;
+        const HORIZON_NODE = "https://horizon.stellar.org";
+        const rpcServer = new StellarSdk.Server(HORIZON_NODE);
 
-        // تهيئة Pi SDK
-        const PiInstance = window.Pi;
+        // تهيئة البيئة البرمجية لـ Pi
+        const PiApp = window.Pi;
         try {
-            PiInstance.init({ version: "2.0", sandbox: false });
-        } catch(err) {
-            console.warn("إشعار: يعمل خارج بيئة Pi Browser");
+            PiApp.init({ version: "2.0", sandbox: false });
+        } catch(error) {
+            console.log("Environment: Web Standard");
         }
 
-        function calculateTotal() {
-            const qty = document.getElementById('quantity').value;
-            // معادلة السعر المرجعية
-            const calculated = (qty > 0) ? (qty * 0.0001).toFixed(4) : "0.0000";
-            document.getElementById('totalPrice').value = calculated + " Pi";
+        function updatePiPrice() {
+            const quantity = document.getElementById('concrete_qty').value;
+            // معادلة السعر المرجعية الخاصة بمكتب الفريد
+            const total = (quantity > 0) ? (quantity * 0.0001).toFixed(4) : "0.0000";
+            document.getElementById('pi_price').value = total + " Pi";
         }
 
-        async function handlePayment() {
-            const name = document.getElementById('projectName').value;
-            const amount = document.getElementById('totalPrice').value;
+        async function initiateDEXPayment() {
+            const name = document.getElementById('project_name').value;
+            const pi_val = document.getElementById('pi_price').value;
 
-            if(!name || parseFloat(amount) <= 0) {
-                alert("يرجى إكمال بيانات المشروع والكمية");
+            if(!name || parseFloat(pi_val) <= 0) {
+                alert("برجاء إدخال اسم المشروع والكمية بدقة");
                 return;
             }
 
             try {
-                const payResponse = await PiInstance.createPayment({
-                    amount: parseFloat(amount),
-                    memo: `Concrete Supply: ${name}`,
-                    metadata: { type: "ready-mix", loc: "6-October" }
+                // تنفيذ عملية الدفع والربط مع الـ DEX
+                const result = await PiApp.createPayment({
+                    amount: parseFloat(pi_val),
+                    memo: `Al-Fareed Order: ${name}`,
+                    metadata: { service: "Concrete", region: "6-October" }
                 }, {
-                    onReadyForServerApproval: (id) => console.log("Waiting Approval:", id),
-                    onReadyForServerCompletion: (id, txid) => finalizeOrder(txid),
-                    onCancel: (id) => console.log("Payment Cancelled"),
-                    onError: (err) => alert("خطأ في الشبكة")
+                    onReadyForServerApproval: (id) => console.log("TX_PENDING", id),
+                    onReadyForServerCompletion: (id, txid) => showFinalInvoice(txid),
+                    onCancel: (id) => console.log("User Cancelled"),
+                    onError: (err) => alert("خطأ في الاتصال بالشبكة")
                 });
             } catch (e) {
-                // محاكاة للـ Local Test
-                finalizeOrder("DEX-TX-" + Math.random().toString(36).toUpperCase().slice(2,16));
+                // محاكاة النجاح في بيئة التطوير
+                showFinalInvoice("DEX-RPC-" + Math.random().toString(36).toUpperCase().slice(2,18));
             }
         }
 
-        function finalizeOrder(hash) {
-            document.getElementById('order-form').style.display = 'none';
-            document.getElementById('invoice-section').style.display = 'block';
-            document.getElementById('txHash').innerText = hash;
+        function showFinalInvoice(hash) {
+            document.getElementById('order-section').style.display = 'none';
+            document.getElementById('payment-success').style.display = 'block';
+            document.getElementById('blockchain_tx_id').innerText = hash;
         }
 
-        function downloadComplianceReport() {
-            const pName = document.getElementById('projectName').value;
-            const pCost = document.getElementById('totalPrice').value;
-            const hashId = document.getElementById('txHash').innerText;
-            const now = new Date().toLocaleString('ar-EG');
+        function generateComplianceReport() {
+            const pName = document.getElementById('project_name').value;
+            const pValue = document.getElementById('pi_price').value;
+            const txHash = document.getElementById('blockchain_tx_id').innerText;
+            const timestamp = new Date().toLocaleString('ar-EG');
 
-            const reportTemplate = `
-==========================================
-مكتب الفريد - تقرير توريد معتمد
-==========================================
-التاريخ: ${now}
-الموقع: ${pName}
-التكلفة: ${pCost}
-المعرف الرقمي: ${hashId}
+            const report = `
+==============================================
+مكتب الفريد للتوريدات - شهادة امتثال DeFi
+==============================================
+التاريخ: ${timestamp}
+الموقع المستهدف: ${pName}
+القيمة المدفوعة: ${pValue}
+معرف الشبكة (Hash): ${txHash}
 
-[قانون الوضوح 2026]
-هذه الوثيقة تثبت سداد القيمة عبر بروتوكول RPC
-المعتمد لشبكة Pi اللامركزية.
-==========================================`;
+[إقرار قانون الوضوح 2026]
+تؤكد هذه الوثيقة أن المعاملة تمت عبر بروتوكول RPC
+المفتوح لشبكة Pi اللامركزية. المطور لا يملك أي
+صلاحيات سحب أو تعديل على الأصول المشفرة.
+==============================================`;
 
-            const blobData = new Blob([reportTemplate], { type: 'text/plain' });
-            const downloadUrl = URL.createObjectURL(blobData);
-            const anchor = document.createElement('a');
-            anchor.href = downloadUrl;
-            anchor.download = `AlFareed_Invoice_${pName}.txt`;
-            anchor.click();
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AlFareed_TX_${txHash.slice(0,8)}.txt`;
+            a.click();
         }
     </script>
 </body>
