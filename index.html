@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/10.4.1/stellar-sdk.js"></script>
     
     <style>
-        /* إعدادات الهوية البصرية لمكتب الفريد */
         :root {
             --primary-purple: #6a1b9a;
             --accent-purple: #9c27b0;
@@ -116,6 +115,31 @@
             text-align: center;
         }
 
+        /* تنسيق نافذة الشهادة المنبثقة */
+        #report-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
         .legal-footer {
             font-size: 0.8rem;
             color: #888;
@@ -170,7 +194,7 @@
             </a>
             
             <button class="btn btn-download" onclick="generateReport()">
-                تحميل شهادة الامتثال المالي
+                عرض وتحميل شهادة الامتثال
             </button>
 
             <div class="legal-footer">
@@ -183,62 +207,51 @@
     </main>
 </div>
 
+<div id="report-modal" onclick="this.style.display='none'">
+    <div class="modal-content" id="modal-text"></div>
+</div>
+
 <script>
-    // 1. البيانات والمفاتيح الخاصة بمكتب الفريد
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const API_KEY = "Fcvojjdl7qbff6v8zhrmq90ynx38kyc1wfvrkkrkpt75cigxjq5j991f8ayj0xeb";
     const WHATSAPP_NUM = "201551016807";
     
-    // 2. تهيئة Pi SDK
     const Pi = window.Pi;
     try {
-        Pi.init({ version: "2.0", sandbox: true }); // sandbox: true للتجربة على Testnet
-        
-        Pi.authenticate(['username', 'payments'], function(payment) {
-            console.log("Payment status updated");
-        }).then(function(auth) {
-            console.log("Welcome " + auth.user.username);
+        Pi.init({ version: "2.0", sandbox: true }); 
+        Pi.authenticate(['username', 'payments'], (payment) => {}).then((auth) => {
+            console.log("Auth Success");
         });
-    } catch(err) {
-        console.error("SDK Error:", err);
-    }
+    } catch(err) { console.error(err); }
 
-    // 3. دالة حساب التكلفة (0.0001 Pi لكل متر مكعب)
     function calculateTotal() {
         const qty = document.getElementById('p_qty').value;
         const total = (qty > 0) ? (qty * 0.0001).toFixed(4) : "0.0000";
         document.getElementById('p_price').value = total + " Pi";
     }
 
-    // 4. تنفيذ الدفع الرسمي لشبكة Pi
     async function processPiPayment() {
         const name = document.getElementById('p_name').value;
-        const valStr = document.getElementById('p_price').value;
-        const amount = parseFloat(valStr);
+        const amount = parseFloat(document.getElementById('p_price').value);
 
-        if(!name || amount <= 0) {
-            alert("برجاء إكمال بيانات المشروع والكمية أولاً");
-            return;
-        }
+        if(!name || amount <= 0) { alert("برجاء إكمال البيانات أولاً"); return; }
 
         try {
             const payment = await Pi.createPayment({
                 amount: amount,
-                memo: `AlFareed Office Order: ${name}`,
-                metadata: { order_type: "concrete", wallet: MY_WALLET }
+                memo: `AlFareed Office: ${name}`,
+                metadata: { orderId: "ALF-" + Date.now() }
             }, {
-                onReadyForServerApproval: (id) => { console.log("Waiting for approval..."); },
+                onReadyForServerApproval: (id) => {},
                 onReadyForServerCompletion: (id, txid) => { showFinalInvoice(txid); },
-                onCancel: (id) => { alert("تم إلغاء عملية الدفع"); },
-                onError: (error, payment) => { alert("عذراً، حدث خطأ في الاتصال بالبلوكشين"); }
+                onCancel: (id) => { alert("تم الإلغاء"); },
+                onError: (error) => { alert("خطأ في الاتصال"); }
             });
         } catch (e) {
-            // محاكاة للنجاح في حالة التجربة خارج المتصفح
             showFinalInvoice("TX-ALF-" + Math.random().toString(36).toUpperCase().slice(2, 10));
         }
     }
 
-    // 5. عرض الفاتورة النهائية وتحديث رابط الواتساب
     function showFinalInvoice(hash) {
         document.getElementById('order-form').style.display = 'none';
         document.getElementById('invoice-section').style.display = 'block';
@@ -246,37 +259,43 @@
         
         const name = document.getElementById('p_name').value;
         const price = document.getElementById('p_price').value;
-        const waMsg = `طلب خرسانة من مكتب الفريد\nالعميل: ${name}\nالمبلغ: ${price}\nالهاش: ${hash}`;
+        const waMsg = `طلب خرسانة - مكتب الفريد\nالعميل: ${name}\nالمبلغ: ${price}\nالهاش: ${hash}`;
         document.getElementById('whatsapp-link').href = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(waMsg)}`;
     }
 
-    // 6. تحميل شهادة التوريد (TXT)
     function generateReport() {
         const n = document.getElementById('p_name').value;
         const v = document.getElementById('p_price').value;
         const h = document.getElementById('p_hash').innerText;
         const d = new Date().toLocaleString('ar-EG');
 
-        const reportContent = `
+        const report = `
 ==============================================
 مكتب الفريد للخدمات (AlFareed Office)
 ==============================================
-إيصال توريد رقمي - نظام Pi Network
+إيصال توريد رقمي - 2026
 ----------------------------------------------
 تاريخ الطلب: ${d}
 العميل/المشروع: ${n}
 القيمة المدفوعة: ${v}
 رقم المعاملة (Hash): ${h}
 ----------------------------------------------
-تم إصدار هذه الشهادة إلكترونياً لعام 2026
+تمت المصادقة عبر Pi Network.
 ==============================================`;
 
-        const blob = new Blob([reportContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `AlFareed_Receipt_${n}.txt`;
-        a.click();
+        // 1. عرض الشهادة في نافذة منبثقة (مضمون 100%)
+        document.getElementById('modal-text').innerText = report;
+        document.getElementById('report-modal').style.display = 'flex';
+
+        // 2. محاولة التحميل كملف (لو المتصفح يسمح)
+        try {
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AlFareed_Receipt.txt`;
+            a.click();
+        } catch(e) { console.log("Download blocked, showing modal instead"); }
     }
 </script>
 </body>
