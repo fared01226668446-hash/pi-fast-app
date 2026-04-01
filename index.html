@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEX مكتب الفريد - بوابة التوريد الرقمية</title>
+    <title>مكتب الفريد - بوابة التوريد الرقمية</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/10.4.1/stellar-sdk.js"></script>
+    
     <style>
-        /* ستايل مكتب Pi الألوان الجديدة: الموف الذهبي */
+        /* تعريف الألوان والهوية البصرية كما في سطر 10 */
         :root {
             --primary-purple: #6a1b9a;
             --accent-purple: #9c27b0;
-            --pi-yellow: #fbc02d; /* لون ذهبي */
+            --pi-yellow: #fbc02d; /* اللون الذهبي */
             --whatsapp-green: #25D366;
             --text-dark: #212121;
             --background: #f4f7f6;
@@ -20,128 +21,59 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--background);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            margin: 0; padding: 20px; display: flex;
+            justify-content: center; align-items: center; height: 100vh;
         }
 
         .app-container {
-            width: 100%;
-            max-width: 480px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.1);
-            overflow: hidden;
-            position: relative;
+            width: 100%; max-width: 480px; background: white;
+            border-radius: 20px; box-shadow: 0 12px 35px rgba(0,0,0,0.1);
+            overflow: hidden; position: relative;
         }
 
+        /* تنسيقات الهيدر والمحتوى كما في سطر 40-51 */
         .header {
-            background-color: var(--primary-purple);
-            color: white;
-            padding: 30px 20px;
-            text-align: center;
-            position: relative;
+            background-color: var(--primary-purple); color: white;
+            padding: 30px 20px; text-align: center; position: relative;
         }
-
         .header h2 { margin: 0; font-size: 1.5em; }
         .header p { margin: 8px 0 0; opacity: 0.9; }
 
         .content { padding: 30px; }
 
-        /* نموذج الطلب */
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; }
         input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 1em;
+            width: 100%; padding: 14px; border: 2px solid #eee;
+            border-radius: 10px; box-sizing: border-box; font-size: 1em;
             transition: 0.3s;
         }
 
-        input:focus { border-color: var(--accent-purple); }
-        input[readonly] { background-color: #f9f9f9; }
-
-        /* الأزرار المحسنة */
+        /* تنسيقات الأزرار المحسنة كما في سطر 69-97 */
         .btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.1em;
-            transition: 0.3s;
-            margin-top: 15px;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-            box-sizing: border-box;
+            width: 100%; padding: 16px; border: none; border-radius: 12px;
+            cursor: pointer; font-weight: bold; font-size: 1.1em;
+            transition: 0.3s; margin-top: 15px; text-decoration: none;
+            display: inline-block; text-align: center; box-sizing: border-box;
         }
+        .btn-pay { background-color: var(--pi-yellow); color: var(--primary-purple); }
+        .btn-whatsapp { background-color: var(--whatsapp-green); color: white; }
+        .btn-download { background-color: white; color: var(--text-dark); border: 2px solid #ddd; }
 
-        .btn-pay {
-            background-color: var(--pi-yellow);
-            color: var(--primary-purple);
-            box-shadow: 0 5px 15px rgba(251, 192, 45, 0.3);
-        }
-
-        .btn-pay:hover { background-color: #f9a825; }
-
-        .btn-whatsapp {
-            background-color: var(--whatsapp-green);
-            color: white;
-            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
-        }
-
-        .btn-whatsapp:hover { background-color: #1ebe57; }
-
-        .btn-download {
-            background-color: white;
-            color: var(--text-dark);
-            border: 2px solid #ddd;
-        }
-
-        .btn-download:hover { background-color: #f5f5f5; }
-
-        /* قسم الفاتورة */
-        #invoice-section {
-            display: none;
-            animation: fadeIn 0.6s ease-out;
-        }
-
+        /* قسم الفاتورة والهاش سطر 106-126 */
+        #invoice-section { display: none; animation: fadeIn 0.6s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .success-icon { font-size: 2em; color: #4caf50; }
-
-        .hash-label { font-size: 0.85em; color: #666; }
         .hash-box {
-            background: #fdfefe;
-            border: 1px dashed var(--pi-yellow);
-            padding: 12px;
-            font-family: monospace;
-            font-size: 0.8em;
-            word-break: break-all;
-            color: var(--pi-yellow);
-            border-radius: 8px;
+            background: #fdfefe; border: 1px dashed var(--pi-yellow);
+            padding: 12px; font-family: monospace; font-size: 0.8em;
+            word-break: break-all; color: var(--pi-yellow); border-radius: 8px;
             margin-bottom: 20px;
         }
 
-        /* الملاحظة القانونية */
         .legal-note {
-            font-size: 0.72em;
-            color: #7f8c8d;
-            text-align: center;
-            margin-top: 30px;
-            padding: 15px;
-            background: #fafafa;
-            border-radius: 10px;
-            border: 1px solid #eee;
-            line-height: 1.6;
+            font-size: 0.72em; color: #7f8c8d; text-align: center;
+            margin-top: 30px; padding: 15px; background: #fafafa;
+            border-radius: 10px; border: 1px solid #eee; line-height: 1.6;
         }
     </style>
 </head>
@@ -171,35 +103,33 @@
         </div>
 
         <div id="invoice-section">
-            <div style="text-align: center;"><span class="success-icon">✅</span></div>
+            <div style="text-align: center;"><span style="font-size: 2em;">✅</span></div>
             <h3 style="text-align:center;">تم التأكيد عبر RPC</h3>
-            
             <span class="hash-label">Blockchain Hash:</span>
-            <div class="hash-box" id="txHash">...</div>
-
+            <div class="hash-box" id="txHash">جاري جلب البيانات...</div>
             <p style="text-align:center;">تم توثيق طلب التوريد بنجاح</p>
-
+            
             <a href="https://wa.me/201551551052" target="_blank" class="btn btn-whatsapp">
                 🟢 إرسال الموقع (WhatsApp)
             </a>
-
+            
             <button class="btn btn-download" onclick="generateReport()">تحميل تقرير الامتثال</button>
 
             <div class="legal-note">
                 <strong>Clarity Act 2026</strong><br>
                 API KEY: hxusp9srryszcfu3...<br>
-                المطور لا يملك صلاحية الوصول للأصول وفقاً لقانون لوميس - محمي قانونياً نظام DeFi.
+                RPC معتمد DeFi. هذه المعاملة محمية وفقاً لقانون لوميس.
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // تفعيل مكتبة Pi ونظام الـ RPC
+    /* قسم الجافا سكريبت - دمج منطق الـ RPC و DEX سطر 193 */
     const PI_USD_PEG = 314159;
     const HORIZON_URL = "https://horizon.stellar.org";
     const server = new StellarSdk.Server(HORIZON_URL);
-    
+
     const Pi = window.Pi;
     try {
         Pi.init({ version: "2.0", sandbox: false });
@@ -216,14 +146,14 @@
         const total = document.getElementById('totalPrice').value;
         
         if(!proj || parseFloat(total) <= 0) {
-            alert("يرجى إدخال اسم المشروع والكمية");
+            alert("يرجى إدخال البيانات المطلوبة");
             return;
         }
 
         try {
             const payment = await Pi.createPayment({
                 amount: parseFloat(total),
-                memo: `Order: ${proj}`,
+                memo: `Concrete Order: ${proj}`,
                 metadata: { project: proj }
             }, {
                 onReadyForServerApproval: (id) => console.log(id),
@@ -232,6 +162,7 @@
                 onError: (error) => console.error(error)
             });
         } catch (e) {
+            // للتجربة خارج متصفح Pi
             showInvoice("TX-" + Math.random().toString(36).toUpperCase().substring(2,15));
         }
     }
@@ -242,11 +173,13 @@
         document.getElementById('txHash').innerText = txid;
     }
 
+    /* دالة إنشاء التقرير المالي كما في سطر 245-270 */
     function generateReport() {
         const proj = document.getElementById('projectName').value;
         const total = document.getElementById('totalPrice').value;
         const date = new Date().toLocaleString('ar-EG');
         const fullApiKey = "hxusp9srryszcfu3...";
+        const txid = document.getElementById('txHash').innerText;
 
         const text = `
 ------------------------------------------
@@ -256,9 +189,10 @@
 المشروع: ${proj}
 القيمة الإجمالية: ${total}
 API Key: ${fullApiKey}
+Blockchain Hash: ${txid}
 
 [إقرار قانون الوضوح 2026]
-معتمد DeFi. تمت هذه المعاملة عبر بروتوكول RPC.
+تمت هذه المعاملة عبر بروتوكول RPC معتمد DeFi.
 المطور لا يملك صلاحية الوصول للأصول وفقاً لقانون لوميس.
 ------------------------------------------`;
 
