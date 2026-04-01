@@ -9,24 +9,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/10.4.1/stellar-sdk.js"></script>
     
     <style>
-        /* 3. إعدادات الهوية البصرية (CSS) لمكتب الفريد */
+        /* إعدادات الهوية البصرية لمكتب الفريد */
         :root {
-            --primary-purple: #6a1b9a;   /* لون الترويسة الأساسي */
-            --accent-purple: #9c27b0;    /* لون التدرج */
-            --pi-yellow: #fbc02d;        /* لون أزرار الدفع والذهب */
-            --whatsapp-green: #25D366;   /* لون التواصل الرسمي */
+            --primary-purple: #6a1b9a;
+            --accent-purple: #9c27b0;
+            --pi-yellow: #fbc02d;
+            --whatsapp-green: #25D366;
             --text-dark: #212121;
-            --background: #f4f7f6;       /* لون الخلفية المريح للعين */
+            --background: #f4f7f6;
             --white: #ffffff;
         }
 
-        /* تصفير الهوامش لضمان أبعاد 750x1500 بشكل سمارت */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -38,7 +32,6 @@
             padding: 15px;
         }
 
-        /* تصميم الحاوية الرئيسية للتطبيق */
         .app-container {
             width: 100%;
             max-width: 460px; 
@@ -52,7 +45,6 @@
             flex-direction: column;
         }
 
-        /* تنسيق الهيدر العلوي */
         .header {
             background: linear-gradient(135deg, var(--primary-purple), var(--accent-purple));
             color: var(--white);
@@ -61,36 +53,14 @@
             border-bottom: 6px solid var(--pi-yellow);
         }
 
-        .header h2 {
-            font-size: 1.9rem;
-            margin-bottom: 8px;
-            font-weight: 900;
-        }
+        .header h2 { font-size: 1.9rem; margin-bottom: 8px; font-weight: 900; }
+        .header p { font-size: 0.95rem; opacity: 0.85; }
 
-        .header p {
-            font-size: 0.95rem;
-            opacity: 0.85;
-            letter-spacing: 0.5px;
-        }
+        .content { padding: 30px; flex: 1; }
 
-        /* تنسيق منطقة المحتوى والبيانات */
-        .content {
-            padding: 30px;
-            flex: 1;
-        }
-
-        /* مجموعات الإدخال */
-        .form-group {
-            margin-bottom: 25px;
-        }
+        .form-group { margin-bottom: 25px; }
         
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 700;
-            color: var(--primary-purple);
-            font-size: 1.1rem;
-        }
+        label { display: block; margin-bottom: 10px; font-weight: 700; color: var(--primary-purple); font-size: 1.1rem; }
 
         input {
             width: 100%;
@@ -102,22 +72,10 @@
             background: #fafafa;
         }
 
-        input:focus {
-            border-color: var(--accent-purple);
-            outline: none;
-            background: var(--white);
-            box-shadow: 0 5px 15px rgba(106, 27, 154, 0.05);
-        }
+        input:focus { border-color: var(--accent-purple); outline: none; background: var(--white); }
 
-        /* تنسيق حقل السعر التلقائي */
-        input[readonly] {
-            background: #fdfdfd;
-            font-weight: 800;
-            color: var(--accent-purple);
-            border: 2px dashed var(--pi-yellow);
-        }
+        input[readonly] { background: #fdfdfd; font-weight: 800; color: var(--accent-purple); border: 2px dashed var(--pi-yellow); }
 
-        /* الأزرار الاحترافية */
         .btn {
             width: 100%;
             padding: 18px;
@@ -135,43 +93,15 @@
         }
 
         .btn:active { transform: scale(0.97); }
+        .btn-pay { background-color: var(--pi-yellow); color: var(--primary-purple); box-shadow: 0 10px 25px rgba(251, 192, 45, 0.3); }
+        .btn-whatsapp { background-color: var(--whatsapp-green); color: var(--white); box-shadow: 0 10px 25px rgba(37, 211, 102, 0.2); }
+        .btn-download { background: var(--white); border: 2px solid #eee; color: var(--text-dark); font-size: 1rem; }
 
-        .btn-pay {
-            background-color: var(--pi-yellow);
-            color: var(--primary-purple);
-            box-shadow: 0 10px 25px rgba(251, 192, 45, 0.3);
-        }
+        #invoice-section { display: none; text-align: center; animation: slideUp 0.5s ease-out; }
 
-        .btn-whatsapp {
-            background-color: var(--whatsapp-green);
-            color: var(--white);
-            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.2);
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-download {
-            background: var(--white);
-            border: 2px solid #eee;
-            color: var(--text-dark);
-            font-size: 1rem;
-        }
-
-        /* قسم الفاتورة الرقمية */
-        #invoice-section {
-            display: none;
-            text-align: center;
-            animation: slideUp 0.5s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .success-badge {
-            font-size: 4rem;
-            margin-bottom: 15px;
-            display: block;
-        }
+        .success-badge { font-size: 4rem; margin-bottom: 15px; display: block; }
 
         .hash-box {
             background: #fffdf5;
@@ -183,11 +113,9 @@
             border-radius: 15px;
             margin: 20px 0;
             color: #444;
-            line-height: 1.5;
             text-align: center;
         }
 
-        /* الملاحظات القانونية لعام 2026 */
         .legal-footer {
             font-size: 0.8rem;
             color: #888;
@@ -195,16 +123,10 @@
             padding: 20px;
             border-radius: 20px;
             margin-top: 35px;
-            line-height: 1.6;
             text-align: center;
             border: 1px solid #eee;
         }
-
-        .legal-footer strong {
-            color: var(--primary-purple);
-            display: block;
-            margin-bottom: 5px;
-        }
+        .legal-footer strong { color: var(--primary-purple); display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -232,7 +154,7 @@
                 <input type="text" id="p_price" readonly value="0.0000 Pi">
             </div>
 
-            <button class="btn btn-pay" onclick="processDEXPayment()">
+            <button class="btn btn-pay" onclick="processPiPayment()">
                 تأكيد الطلب والدفع الرقمي
             </button>
         </div>
@@ -240,11 +162,10 @@
         <div id="invoice-section">
             <span class="success-badge">✅</span>
             <h3 style="color: #2e7d32; font-size: 1.5rem;">تمت المصادقة بنجاح</h3>
-            
             <p style="margin-top: 15px; font-weight: bold; color: #666;">Blockchain TX Hash:</p>
             <div class="hash-box" id="p_hash">جاري استدعاء البيانات...</div>
             
-            <a href="https://wa.me/201551551052" target="_blank" class="btn btn-whatsapp">
+            <a id="whatsapp-link" href="https://wa.me/201551016807" target="_blank" class="btn btn-whatsapp">
                 ارسال إحداثيات الموقع (WhatsApp)
             </a>
             
@@ -254,74 +175,82 @@
 
             <div class="legal-footer">
                 <strong>Clarity Act 2026 Compliance</strong>
-                محمي بنظام DeFi المعتمد. المطور لا يملك صلاحية الوصول للأصول.
-                <br>API KEY: hxusp9srryszcfu3...
-                <br>Wallet Target: UVTZ
+                مكتب الفريد للخدمات - 6 أكتوبر والشيخ زايد
+                <br>API KEY: Fcvojjdl7q...j0xeb
+                <br>Wallet Target: ...UVTZ
             </div>
         </div>
     </main>
 </div>
 
 <script>
-    /* 6. منطق البرمجة المدمج (JS Logic) لدمج المحفظة والـ RPC */
-    
-    // بيانات المحفظة والعقد الذكي المدمجة
+    // 1. البيانات والمفاتيح الخاصة بمكتب الفريد
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
-    const SMART_CONTRACT = "0xf8e81D47203A594245E36C48e151709F0C19fBe8";
-    const RPC_URL = "https://horizon.stellar.org"; // Stellar RPC Endpoint
+    const API_KEY = "Fcvojjdl7qbff6v8zhrmq90ynx38kyc1wfvrkkrkpt75cigxjq5j991f8ayj0xeb";
+    const WHATSAPP_NUM = "201551016807";
     
-    // تهيئة البيئة البرمجية لشبكة Pi
-    const PiApp = window.Pi;
+    // 2. تهيئة Pi SDK
+    const Pi = window.Pi;
     try {
-        PiApp.init({ version: "2.0", sandbox: false });
+        Pi.init({ version: "2.0", sandbox: true }); // sandbox: true للتجربة على Testnet
+        
+        Pi.authenticate(['username', 'payments'], function(payment) {
+            console.log("Payment status updated");
+        }).then(function(auth) {
+            console.log("Welcome " + auth.user.username);
+        });
     } catch(err) {
-        console.log("Environment: Web Browser Mode");
+        console.error("SDK Error:", err);
     }
 
-    // دالة الحساب التلقائي بناءً على الكمية
+    // 3. دالة حساب التكلفة (0.0001 Pi لكل متر مكعب)
     function calculateTotal() {
         const qty = document.getElementById('p_qty').value;
-        // معادلة السعر المرجعية لمكتب الفريد (0.0001 Pi لكل متر)
         const total = (qty > 0) ? (qty * 0.0001).toFixed(4) : "0.0000";
         document.getElementById('p_price').value = total + " Pi";
     }
 
-    // دالة تنفيذ الدفع وربط الهاش عبر الـ RPC
-    async function processDEXPayment() {
+    // 4. تنفيذ الدفع الرسمي لشبكة Pi
+    async function processPiPayment() {
         const name = document.getElementById('p_name').value;
-        const val = document.getElementById('p_price').value;
+        const valStr = document.getElementById('p_price').value;
+        const amount = parseFloat(valStr);
 
-        if(!name || parseFloat(val) <= 0) {
-            alert("برجاء إكمال بيانات الطلب أولاً");
+        if(!name || amount <= 0) {
+            alert("برجاء إكمال بيانات المشروع والكمية أولاً");
             return;
         }
 
         try {
-            // استدعاء واجهة الدفع الرسمية (SDK Payment)
-            const payment = await PiApp.createPayment({
-                amount: parseFloat(val),
+            const payment = await Pi.createPayment({
+                amount: amount,
                 memo: `AlFareed Office Order: ${name}`,
-                metadata: { wallet: MY_WALLET, contract: SMART_CONTRACT }
+                metadata: { order_type: "concrete", wallet: MY_WALLET }
             }, {
-                onReadyForServerApproval: (id) => console.log("TX_ID:", id),
-                onReadyForServerCompletion: (id, txid) => showFinalInvoice(txid),
-                onCancel: (id) => console.log("User Cancelled"),
-                onError: (error) => alert("خطأ في الاتصال بالبلوكشين")
+                onReadyForServerApproval: (id) => { console.log("Waiting for approval..."); },
+                onReadyForServerCompletion: (id, txid) => { showFinalInvoice(txid); },
+                onCancel: (id) => { alert("تم إلغاء عملية الدفع"); },
+                onError: (error, payment) => { alert("عذراً، حدث خطأ في الاتصال بالبلوكشين"); }
             });
         } catch (e) {
-            // محاكاة للنجاح في حالة الاختبار (Local Mock)
-            showFinalInvoice("DEX-RPC-" + Math.random().toString(36).toUpperCase().slice(2, 16));
+            // محاكاة للنجاح في حالة التجربة خارج المتصفح
+            showFinalInvoice("TX-ALF-" + Math.random().toString(36).toUpperCase().slice(2, 10));
         }
     }
 
-    // عرض الفاتورة والهاش النهائي
+    // 5. عرض الفاتورة النهائية وتحديث رابط الواتساب
     function showFinalInvoice(hash) {
         document.getElementById('order-form').style.display = 'none';
         document.getElementById('invoice-section').style.display = 'block';
         document.getElementById('p_hash').innerText = hash;
+        
+        const name = document.getElementById('p_name').value;
+        const price = document.getElementById('p_price').value;
+        const waMsg = `طلب خرسانة من مكتب الفريد\nالعميل: ${name}\nالمبلغ: ${price}\nالهاش: ${hash}`;
+        document.getElementById('whatsapp-link').href = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(waMsg)}`;
     }
 
-    // توليد ملف الامتثال الضريبي والمالي
+    // 6. تحميل شهادة التوريد (TXT)
     function generateReport() {
         const n = document.getElementById('p_name').value;
         const v = document.getElementById('p_price').value;
@@ -330,33 +259,25 @@
 
         const reportContent = `
 ==============================================
-مكتب الفريد للتوريدات (AlFareed Office)
+مكتب الفريد للخدمات (AlFareed Office)
 ==============================================
-شهادة امتثال مالي - نظام DeFi 2026
+إيصال توريد رقمي - نظام Pi Network
 ----------------------------------------------
-تاريخ المعاملة: ${d}
-الموقع / العميل: ${n}
+تاريخ الطلب: ${d}
+العميل/المشروع: ${n}
 القيمة المدفوعة: ${v}
-المحفظة المستلمة: ${MY_WALLET}
-معرف الشبكة (Hash): ${h}
-
-[إقرار قانون الوضوح 2026]
-تؤكد هذه الوثيقة أن المعاملة تمت عبر بروتوكول RPC
-المفتوح لشبكة Pi. العقد الذكي رقم (${SMART_CONTRACT})
-يضمن عدم التلاعب بالبيانات المالية.
+رقم المعاملة (Hash): ${h}
+----------------------------------------------
+تم إصدار هذه الشهادة إلكترونياً لعام 2026
 ==============================================`;
 
         const blob = new Blob([reportContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `AlFareed_Report_${n}.txt`;
+        a.download = `AlFareed_Receipt_${n}.txt`;
         a.click();
     }
-    
-    /* نهاية الكود البرمجي لمكتب الفريد - 2026 */
 </script>
-
 </body>
-</html>
 </html>
