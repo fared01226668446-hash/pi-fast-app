@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - RPC2 & Liquidity & WA</title>
+    <title>مكتب الفريد - Final Fix</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 10px; }
         .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 6px solid #6a1b9a; }
         .section-title { font-size: 14px; font-weight: bold; color: #6a1b9a; margin: 15px 0 5px; background: #f3e5f5; padding: 8px; border-radius: 8px; }
         input { width: 90%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
-        .btn { width: 100%; padding: 15px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn { width: 100%; padding: 15px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; -webkit-tap-highlight-color: transparent; }
+        .btn:active { background: #4a148c; transform: scale(0.98); }
         .btn-liq { background: #007bff; }
         #res { display: none; margin-top: 15px; background: #e8f5e9; padding: 15px; border-radius: 12px; color: #2e7d32; }
     </style>
@@ -19,19 +20,18 @@
 
 <div class="card">
     <h2 style="color:#6a1b9a;">مكتب الفريد الذكي</h2>
-    <div style="font-size: 11px; color: #888; margin-bottom: 10px;">RPC v2.0 | ISO 20022 Standard</div>
-
+    
     <div id="main-ui">
         <div class="section-title">طلب توريد خرسانة (Services)</div>
         <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="calculate()">
         <input type="text" id="amt" readonly placeholder="السعر بـ Pi">
-        <button class="btn" onclick="payNow('Service')">تأكيد دفع الخدمة</button>
+        <button class="btn" ontouchstart="" onclick="payNow('Service')">تأكيد دفع الخدمة</button>
 
         <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
 
         <div class="section-title">دعم حوض السيولة (Liquidity)</div>
         <input type="number" id="liq_qty" placeholder="كمية السيولة المراد نقلها">
-        <button class="btn btn-liq" onclick="payNow('Liquidity')">نقل إلى حوض السيولة</button>
+        <button class="btn btn-liq" ontouchstart="" onclick="payNow('Liquidity')">نقل إلى حوض السيولة</button>
     </div>
 
     <div id="res">
@@ -43,11 +43,15 @@
 
 <script>
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
-    const MY_PHONE = "201551016807"; // رقمك المدمج
-    const Pi = window.Pi;
+    const MY_PHONE = "201551016807";
     
-    Pi.init({ version: "2.0", sandbox: false });
-    Pi.authenticate(['payments', 'username'], (incomplete) => {}).catch(() => {});
+    // إجبار المتصفح على التعرف على الأزرار
+    window.onload = function() {
+        if (window.Pi) {
+            window.Pi.init({ version: "2.0", sandbox: false });
+            console.log("Pi SDK Initialized");
+        }
+    };
 
     function calculate() {
         let q = document.getElementById('qty').value;
@@ -58,8 +62,10 @@
     }
 
     async function payNow(type) {
-        let amount, memo, category;
+        // منع أي تعليق في الزر
+        console.log("Payment Started: " + type);
         
+        let amount, memo, category;
         if(type === 'Service') {
             let val = document.getElementById('amt').value.replace(" Pi", "");
             amount = parseFloat(val);
@@ -71,20 +77,25 @@
             category = "Liquidity Pool";
         }
 
-        if(!amount || amount <= 0) return alert("يرجى إدخال كمية صحيحة");
+        if(!amount || amount <= 0) {
+            alert("يرجى إدخال كمية صحيحة");
+            return;
+        }
 
         try {
-            await Pi.createPayment({
+            const payment = await window.Pi.createPayment({
                 amount: amount,
                 memo: memo,
                 metadata: { protocol: "RPC2", type: category, wallet: MY_WALLET }
             }, {
                 onReadyForServerApproval: (id) => console.log("Approved"),
                 onReadyForServerCompletion: (id, tx) => showSuccess(tx, amount, category),
-                onCancel: () => alert("تم إلغاء العملية"),
+                onCancel: () => console.log("Cancelled"),
                 onError: (e) => alert("خطأ: " + e.message)
             });
-        } catch (e) { alert("تأكد من استخدام Pi Browser"); }
+        } catch (e) {
+            alert("تنبيه: يرجى فتح التطبيق من داخل Pi Browser فقط لعمل الأزرار.");
+        }
     }
 
     function showSuccess(tx, a, cat) {
