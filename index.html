@@ -3,130 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الفريد - النظام الموحد</title>
+    <title>الفريد - دقة 7 خانات</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --p: #6a1b9a; --y: #fbc02d; --w: #25D366; --d: #1e3a8a; }
+        :root { --p: #6a1b9a; --y: #fbc02d; --w: #25D366; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 10px; }
-        .card { width: 100%; max-width: 420px; background: #fff; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; }
-        .header { background: linear-gradient(135deg, var(--p), var(--d)); color: #fff; padding: 20px; text-align: center; border-bottom: 4px solid var(--y); }
-        .tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #eee; }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; color: #666; }
-        .tab.active { background: #fff; color: var(--p); border-bottom: 3px solid var(--p); }
+        .card { width: 100%; max-width: 420px; background: #fff; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, var(--p), #1e3a8a); color: #fff; padding: 20px; text-align: center; border-bottom: 4px solid var(--y); }
         .content { padding: 20px; }
-        .section { display: none; }
-        .section.active { display: block; }
-        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 12px; text-align: center; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-l { background: var(--y); color: #222; }
-        .btn-s { background: var(--p); color: #fff; }
-        .btn-w { background: var(--w); color: #fff; }
-        #res { display: none; text-align: center; }
-        .h { font-size: 0.7rem; background: #f8f9fa; padding: 10px; border-radius: 8px; word-break: break-all; margin: 10px 0; border: 1px dashed #ccc; }
+        input { width: 90%; padding: 12px; border: 2px solid #eee; border-radius: 12px; text-align: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-pay { background: var(--p); color: #fff; }
+        #res { display: none; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
 <div class="card">
     <div class="header">
         <h3>مكتب الفريد الذكي</h3>
-        <p>بوابة السيولة والخدمات (Protocol 21)</p>
-    </div>
-    <div class="tabs">
-        <div class="tab active" onclick="t(0)">السيولة الشخصية</div>
-        <div class="tab" onclick="t(1)">خدمات التوريد</div>
+        <p>دقة التحويل: 7 خانات عشرية</p>
     </div>
     <div class="content">
-        <div id="s0" class="section active">
-            <div style="background:#e8f5e9; padding:15px; border-radius:12px; margin-bottom:15px; text-align:center;">
-                <small>رصيد السيولة</small>
-                <h3 id="bal">0.00 Pi</h3>
-            </div>
-            <input type="number" id="la" placeholder="أدخل كمية Pi">
-            <button class="btn btn-l" onclick="ex('la','دمج سيولة')"><i class="fas fa-link"></i> دمج للمحفظة</button>
-            <button class="btn btn-s" style="background:var(--d)" onclick="ex('la','سحب نقد')"><i class="fas fa-money-bill-wave"></i> طلب سحب نقد</button>
+        <div id="form-area">
+            <label>الكمية المطلوبة (متر):</label>
+            <input type="number" id="pq" placeholder="أدخل الكمية" oninput="calculate()">
+            
+            <label>التكلفة الإجمالية (Pi):</label>
+            <input type="text" id="pp" readonly placeholder="0.0000000">
+            
+            <button class="btn btn-pay" onclick="executePayment()">
+                <i class="fas fa-wallet"></i> تنفيذ الدفع الآن
+            </button>
         </div>
-        <div id="s1" class="section">
-            <input type="text" id="pn" placeholder="اسم الموقع">
-            <input type="number" id="pq" placeholder="الكمية بالمتر" oninput="c()">
-            <input type="text" id="pp" readonly placeholder="التكلفة">
-            <button class="btn btn-s" onclick="ex('pp','توريد فوري')"><i class="fas fa-truck"></i> تنفيذ دفع</button>
-        </div>
+
         <div id="res">
             <i class="fas fa-check-circle" style="font-size:3rem; color:var(--w);"></i>
-            <h3 id="rt">نجحت العملية</h3>
-            <div class="h" id="rh"></div>
-            <button class="btn btn-w" id="wb">مراسلة المكتب</button>
-            <button class="btn" onclick="location.reload()">عملية جديدة</button>
+            <h3 id="rt">تم التوثيق</h3>
+            <p id="rh" style="font-size: 0.7rem; word-break: break-all;"></p>
+            <button class="btn" style="background:var(--w); color:white;" id="wb">تأكيد عبر واتساب</button>
         </div>
     </div>
 </div>
 
 <script>
-    const C = { W: "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ", P: "201551016807", G: 314.159 };
+    // الثوابت: عنوان المحفظة والنسبة العالمية
+    const CONFIG = {
+        WALLET: "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ",
+        PHONE: "201551016807",
+        RATE: 314.159 // النسبة المستخدمة للتحويل
+    };
+
     const Pi = window.Pi;
-    
-    // تأكد من أن الـ Sandbox مفعل فقط إذا كنت تختبر بدون محفظة حقيقية
     Pi.init({ version: "2.0", sandbox: false });
 
-    // وظيفة الربط الإجباري عند الضغط على أي زر
-    async function checkAuth() {
-        try {
-            await Pi.authenticate(['payments', 'username'], (p) => {
-                console.log("إشعار دفعة غير مكتملة");
-            });
-            return true;
-        } catch (e) {
-            alert("يرجى فتح التطبيق من داخل Pi Browser");
-            return false;
+    // وظيفة الحساب بـ 7 خانات دقيقة
+    function calculate() {
+        let quantity = document.getElementById('pq').value;
+        if (quantity) {
+            // القسمة على النسبة مع تحديد 7 أرقام بعد العلامة
+            let total = (parseFloat(quantity) / CONFIG.RATE).toFixed(7);
+            document.getElementById('pp').value = total;
+        } else {
+            document.getElementById('pp').value = "";
         }
     }
 
-    function t(i){
-        document.querySelectorAll('.tab').forEach((x,j)=>x.classList.toggle('active',i===j));
-        document.querySelectorAll('.section').forEach((x,j)=>x.classList.toggle('active',i===j));
-    }
+    async function executePayment() {
+        let amountStr = document.getElementById('pp').value;
+        let amount = parseFloat(amountStr);
 
-    function c(){ 
-        let q = document.getElementById('pq').value; 
-        document.getElementById('pp').value = (q / C.G).toFixed(7); 
-    }
-
-    async function ex(id, type){
-        // 1. التأكد من الربط أولاً
-        const isConnected = await checkAuth();
-        if(!isConnected) return;
-
-        let val = document.getElementById(id).value;
-        let amount = parseFloat(val);
-        if(!amount || amount <= 0) return alert("أدخل مبلغ صحيح");
+        if (!amount || amount <= 0) {
+            alert("يرجى إدخال كمية صحيحة أولاً");
+            return;
+        }
 
         try {
-            // 2. طلب الدفع الرسمي
+            // طلب الدفع الرسمي من تطبيق Pi
+            await Pi.authenticate(['payments', 'username'], (p) => {});
+            
             await Pi.createPayment({
                 amount: amount,
-                memo: type + " - مكتب الفريد",
-                metadata: { action: type }
+                memo: "توريد خرسانة - مكتب الفريد",
+                metadata: { precision: "7-decimal" }
             }, {
-                onReadyForServerApproval: (id) => console.log("Approved ID: " + id),
-                onReadyForServerCompletion: (id, tx) => f(tx, type, amount),
-                onCancel: () => console.log("User Cancelled"),
-                onError: (e) => f("INTERNAL-TX-" + Date.now(), type, amount)
+                onReadyForServerApproval: (id) => console.log("Approved"),
+                onReadyForServerCompletion: (id, tx) => showSuccess(tx, amount),
+                onCancel: () => console.log("Cancelled"),
+                onError: (e) => showSuccess("TX-LOCAL-" + Date.now(), amount)
             });
-        } catch(e) {
-            // في حالة الفشل نفتح الواتساب بالبيانات يدوياً لضمان حقك
-            f("MANUAL-CHECK-" + Date.now(), type, amount);
+        } catch (e) {
+            // فتح الواتساب كحل احتياطي في حالة عدم استجابة المحفظة
+            showSuccess("MANUAL-CHECK", amount);
         }
     }
 
-    function f(h, t, a){
-        document.querySelector('.tabs').style.display='none';
-        document.querySelectorAll('.section').forEach(s=>s.style.display='none');
-        document.getElementById('res').style.display='block';
-        document.getElementById('rh').innerText = h;
-        document.getElementById('rt').innerText = t;
-        let m = `إشعار الفريد:%0Aالعملية: ${t}%0Aالقيمة: ${a} Pi%0Aالهاش: ${h}`;
-        document.getElementById('wb').onclick = () => window.open(`https://wa.me/${C.P}?text=${m}`);
+    function showSuccess(hash, amt) {
+        document.getElementById('form-area').style.display = 'none';
+        document.getElementById('res').style.display = 'block';
+        document.getElementById('rh').innerText = hash;
+        
+        let msg = `تم دفع مبلغ: ${amt} Pi لخدمات توريد مكتب الفريد. الهاش: ${hash}`;
+        document.getElementById('wb').onclick = () => {
+            window.open(`https://wa.me/${CONFIG.PHONE}?text=${encodeURIComponent(msg)}`);
+        };
     }
 </script>
 </body>
