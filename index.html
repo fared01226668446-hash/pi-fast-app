@@ -3,82 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - دفع سريع</title>
+    <title>مكتب الفريد - الدفع المباشر</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
         .card { width: 100%; max-width: 400px; background: #fff; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center; }
-        .btn { width: 100%; padding: 15px; background: #6a1b9a; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; }
-        #res { display: none; color: green; margin-top: 20px; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 8px; font-size: 16px; text-align: center; }
+        .btn { width: 100%; padding: 15px; background: #6a1b9a; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 10px; }
+        .btn-auth { background: #fbc02d; color: #000; margin-bottom: 10px; }
+        #res { display: none; color: green; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
-
 <div class="card">
     <h2 style="color:#6a1b9a;">مكتب الفريد الذكي</h2>
-    <p>تجهيز طلب توريد (7 خانات)</p>
-    
-    <input type="number" id="qty" placeholder="أدخل الكمية بالمتر" oninput="calc()">
-    <input type="text" id="amt" readonly placeholder="التكلفة بـ Pi">
-    
-    <button class="btn" onclick="startPay()">تنفيذ الدفع الآن</button>
-
+    <button id="auth-btn" class="btn btn-auth" onclick="login()">1. ربط المحفظة للبدء</button>
+    <div id="payment-area" style="display:none;">
+        <input type="number" id="qty" placeholder="أدخل الكمية بالمتر" oninput="calc()">
+        <input type="text" id="amt" readonly placeholder="0.0000000">
+        <button class="btn" onclick="startPay()">2. تنفيذ الدفع الآن</button>
+    </div>
     <div id="res">
-        <p>✅ نجحت العملية!</p>
-        <p id="txid" style="font-size: 10px;"></p>
+        <p>✅ تم الدفع بنجاح!</p>
+        <p id="txid" style="font-size: 10px; word-break: break-all;"></p>
+        <button class="btn" style="background:#25D366;" id="wa-btn">مراسلة المكتب بالهاش</button>
     </div>
 </div>
-
 <script>
-    // 1. تشغيل المكتبة
+    // عنوان محفظتك لاستقبال الأموال
+    const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const Pi = window.Pi;
     Pi.init({ version: "2.0", sandbox: false });
 
-    // 2. الحساب التلقائي (النسبة 314.159)
-    function calc() {
-        let q = document.getElementById('qty').value;
-        if(q > 0) {
-            document.getElementById('amt').value = (parseFloat(q) / 314.159).toFixed(7);
-        }
+    async function login() {
+        try {
+            await Pi.authenticate(['payments', 'username'], (p) => {});
+            document.getElementById('auth-btn').style.display = 'none';
+            document.getElementById('payment-area').style.display = 'block';
+        } catch (err) { alert("افتح التطبيق من Pi Browser"); }
     }
 
-    // 3. وظيفة الزرار الأساسية
+    function calc() {
+        let q = document.getElementById('qty').value;
+        if(q > 0) document.getElementById('amt').value = (parseFloat(q) / 314.159).toFixed(7);
+    }
+
     async function startPay() {
-        let val = document.getElementById('amt').value;
-        let amount = parseFloat(val);
-
-        if(!amount || amount <= 0) {
-            alert("من فضلك اكتب الكمية أولاً");
-            return;
-        }
-
+        let amount = parseFloat(document.getElementById('amt').value);
+        if(!amount || amount <= 0) return alert("اكتب الكمية أولاً");
         try {
-            // طلب التوثيق والدفع
-            await Pi.authenticate(['payments'], (p) => {});
-            
             await Pi.createPayment({
                 amount: amount,
                 memo: "توريد خرسانة - مكتب الفريد",
-                metadata: { type: "concrete_supply" }
+                metadata: { recipient_wallet: MY_WALLET } // توجيه الدفع لمحفظتك
             }, {
                 onReadyForServerApproval: (id) => console.log("Approved"),
-                onReadyForServerCompletion: (id, tx) => showRes(tx),
-                onCancel: () => alert("تم إلغاء الدفع"),
-                onError: (e) => alert("خطأ في المحفظة: " + e.message)
+                onReadyForServerCompletion: (id, tx) => showRes(tx, amount),
+                onCancel: () => alert("تم إلغاء العملية"),
+                onError: (e) => alert("خطأ: " + e.message)
             });
-        } catch (err) {
-            alert("حدث خطأ: تأكد أنك داخل Pi Browser");
-        }
+        } catch (err) { alert("فشل تنفيذ الدفع"); }
     }
 
-    function showRes(tx) {
+    function showRes(tx, a) {
+        document.getElementById('payment-area').style.display = 'none';
         document.getElementById('res').style.display = 'block';
         document.getElementById('txid').innerText = tx;
-        // فتح الواتساب تلقائياً بعد النجاح
-        window.open("https://wa.me/201551016807?text=تم الدفع بنجاح، الهاش: " + tx);
+        let msg = `تم دفع ${a} Pi لمكتب الفريد. الهاش: ${tx}`;
+        document.getElementById('wa-btn').onclick = () => {
+            window.open(`https://wa.me/201551016807?text=${encodeURIComponent(msg)}`);
+        };
     }
 </script>
-
 </body>
 </html>
