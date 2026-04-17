@@ -3,41 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - RPC v2 Integrated</title>
+    <title>مكتب الفريد - النظام المتكامل RPC2</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 10px; }
-        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 6px solid #6a1b9a; }
-        .section-title { font-size: 14px; font-weight: bold; color: #6a1b9a; margin: 15px 0 5px; background: #f3e5f5; padding: 8px; border-radius: 8px; }
+        .card { width: 100%; max-width: 450px; background: #fff; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 6px solid #6a1b9a; }
+        .section-title { font-size: 14px; font-weight: bold; color: #fff; margin: 15px 0 5px; padding: 10px; border-radius: 8px; }
+        .service-bg { background: #6a1b9a; }
+        .liquidity-bg { background: #007bff; }
+        .allowance-bg { background: #0288d1; }
         input { width: 90%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
-        .btn { width: 100%; padding: 15px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn-liq { background: #007bff; }
+        .btn { width: 100%; padding: 15px; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; -webkit-tap-highlight-color: transparent; }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
         #res { display: none; margin-top: 15px; background: #e8f5e9; padding: 15px; border-radius: 12px; color: #2e7d32; }
+        .status-bar { font-size: 11px; color: #888; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:#6a1b9a;">مكتب الفريد الذكي</h2>
-    <div id="protocol-status" style="font-size: 11px; color: #888; margin-bottom: 10px;">RPC v2.0 | ISO 20022 Standard</div>
+    <h2 style="color:#6a1b9a; margin-bottom:5px;">مكتب الفريد الذكي</h2>
+    <div class="status-bar" id="status">Protocol: RPC v2.0 | ISO 20022 Standard</div>
 
     <div id="main-ui">
-        <div class="section-title">طلب توريد خرسانة (Services)</div>
+        <div class="section-title service-bg">طلب توريد خرسانة (Services)</div>
         <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="calculate()" inputmode="decimal">
         <input type="text" id="amt" readonly placeholder="السعر بـ Pi">
-        <button class="btn" onclick="payNow('Service')">تأكيد دفع الخدمة (RPC v2)</button>
+        <button class="btn service-bg" onclick="payNow('Service')">تأكيد دفع الخدمة</button>
+
+        <div class="section-title allowance-bg">الصرف الشهري المستحق (RPC2)</div>
+        <p style="font-size: 10px; color: #666; margin: 5px 0;">سحب مستحقاتك الشهرية من المحفظة</p>
+        <input type="number" id="allowance_amount" placeholder="المبلغ المراد صرفه" inputmode="decimal">
+        <button class="btn allowance-bg" onclick="payNow('Allowance')">سحب الصرف الشهري</button>
 
         <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
 
-        <div class="section-title">دعم حوض السيولة (Liquidity)</div>
+        <div class="section-title liquidity-bg">دعم حوض السيولة (Liquidity)</div>
         <input type="number" id="liq_qty" placeholder="كمية السيولة المراد نقلها" inputmode="decimal">
-        <button class="btn btn-liq" onclick="payNow('Liquidity')">نقل إلى حوض السيولة (RPC v2)</button>
+        <button class="btn liquidity-bg" onclick="payNow('Liquidity')">نقل إلى حوض السيولة</button>
     </div>
 
     <div id="res">
         <p style="font-weight: bold;">✅ تمت العملية بنجاح!</p>
         <p id="tx-info" style="font-size: 10px; color: #444; word-break: break-all;"></p>
         <button id="wa-btn" class="btn" style="background: #25D366;">إرسال الهاش عبر واتساب</button>
+        <button class="btn" style="background: #666;" onclick="location.reload()">العودة للرئيسية</button>
     </div>
 </div>
 
@@ -46,13 +56,12 @@
     const MY_PHONE = "201551016807";
     const Pi = window.Pi;
     
-    // تهيئة النظام ودمج RPC v2 صراحة
     window.onload = function() {
         Pi.init({ version: "2.0", sandbox: false });
         Pi.authenticate(['payments', 'username'], (incomplete) => {
-            document.getElementById('protocol-status').innerText = "RPC v2.0: Connected & Active";
+            document.getElementById('status').innerText = "RPC v2.0: Connected & Active";
         }).catch(() => {
-            console.log("Waiting for Pi Browser...");
+            console.log("الرجاء الفتح من Pi Browser");
         });
     };
 
@@ -70,35 +79,33 @@
         if(type === 'Service') {
             let val = document.getElementById('amt').value.replace(" Pi", "");
             amount = parseFloat(val);
-            memo = "Concrete Service Delivery - RPC v2.0";
+            memo = "طلب توريد خرسانة - مكتب الفريد";
             category = "Service Request";
+        } else if(type === 'Allowance') {
+            amount = parseFloat(document.getElementById('allowance_amount').value);
+            memo = "سحب مخصصات صرف شهري - RPC2";
+            category = "Monthly Allowance Claim";
         } else {
             amount = parseFloat(document.getElementById('liq_qty').value);
-            memo = "Liquidity Pool Support - ISO 20022 Compliant";
+            memo = "دعم حوض السيولة للشبكة - ISO 20022";
             category = "Liquidity Pool";
         }
 
-        if(!amount || amount <= 0) return alert("يرجى إدخال كمية صحيحة");
+        if(!amount || amount <= 0) return alert("يرجى إدخال مبلغ صحيح");
 
         try {
-            // دمج الـ RPC و ISO داخل الـ Payment Metadata
             await Pi.createPayment({
                 amount: amount,
                 memo: memo,
-                metadata: { 
-                    protocol: "RPC v2.0", 
-                    standard: "ISO 20022", 
-                    type: category, 
-                    wallet: MY_WALLET 
-                }
+                metadata: { protocol: "RPC2", type: category, wallet: MY_WALLET }
             }, {
-                onReadyForServerApproval: (id) => console.log("RPC Approval: " + id),
+                onReadyForServerApproval: (id) => console.log("Approved"),
                 onReadyForServerCompletion: (id, tx) => showSuccess(tx, amount, category),
-                onCancel: () => alert("تم إلغاء العملية"),
-                onError: (e) => alert("خطأ في بروتوكول RPC: " + e.message)
+                onCancel: () => console.log("Cancelled"),
+                onError: (e) => alert("خطأ: " + e.message)
             });
         } catch (e) {
-            alert("تنبيه: تأكد من استخدام متصفح Pi الرسمي لتفعيل RPC.");
+            alert("يرجى التأكد من استخدام متصفح Pi الرسمي.");
         }
     }
 
@@ -107,7 +114,7 @@
         document.getElementById('res').style.display = 'block';
         document.getElementById('tx-info').innerText = "الهاش: " + tx;
         
-        let message = `مرحبا مكتب الفريد،\nتم تنفيذ عملية ${cat}\nالمبلغ: ${a} Pi\nالهاش: ${tx}\nProtocol: RPC v2.0`;
+        let message = `مرحبا مكتب الفريد،\nتم تنفيذ عملية: ${cat}\nالمبلغ: ${a} Pi\nالهاش: ${tx}\nبروتوكول: RPC2`;
         document.getElementById('wa-btn').onclick = () => {
             window.open(`https://wa.me/${MY_PHONE}?text=${encodeURIComponent(message)}`);
         };
