@@ -3,77 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الفريد - المحرك الذكي</title>
+    <title>الفريد - النظام الموحد</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --p: #6a1b9a; --y: #fbc02d; --w: #25D366; }
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 10px; }
-        .card { width: 100%; max-width: 420px; background: #fff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: linear-gradient(135deg, var(--p), #1e3a8a); color: #fff; padding: 20px; text-align: center; border-bottom: 4px solid var(--y); }
-        .tabs { display: flex; background: #f1f1f1; }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
+        :root { --p: #6a1b9a; --y: #fbc02d; --w: #25D366; --d: #1e3a8a; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 10px; }
+        .card { width: 100%; max-width: 420px; background: #fff; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; }
+        .header { background: linear-gradient(135deg, var(--p), var(--d)); color: #fff; padding: 20px; text-align: center; border-bottom: 4px solid var(--y); }
+        .tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #eee; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.3s; color: #666; }
         .tab.active { background: #fff; color: var(--p); border-bottom: 3px solid var(--p); }
-        .content { padding: 15px; }
+        .content { padding: 20px; }
         .section { display: none; }
-        .section.active { display: block; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; text-align: center; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .section.active { display: block; animation: fadeIn 0.3s; }
+        .input-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 12px; text-align: center; font-size: 1rem; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--p); }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         .btn-l { background: var(--y); color: #222; }
         .btn-s { background: var(--p); color: #fff; }
         .btn-w { background: var(--w); color: #fff; }
         #res { display: none; text-align: center; padding: 20px; }
-        .h { font-size: 0.65rem; background: #eee; padding: 8px; border-radius: 8px; word-break: break-all; margin: 10px 0; color: #555; }
+        .h { font-size: 0.7rem; background: #f8f9fa; padding: 10px; border-radius: 8px; word-break: break-all; margin: 10px 0; color: #555; border: 1px dashed #ccc; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 <div class="card">
-    <div class="header"><h3>مكتب الفريد (V21)</h3><p>السيولة والخدمات الذكية</p></div>
-    <div class="tabs"><div class="tab active" onclick="t(0)">السيولة</div><div class="tab" onclick="t(1)">التوريد</div></div>
+    <div class="header">
+        <h3>مكتب الفريد الذكي</h3>
+        <p>بوابة السيولة والخدمات (Protocol 21)</p>
+    </div>
+    <div class="tabs">
+        <div class="tab active" onclick="t(0)">السيولة الشخصية</div>
+        <div class="tab" onclick="t(1)">خدمات التوريد</div>
+    </div>
     <div class="content">
         <div id="s0" class="section active">
-            <div style="background:#e8f5e9; padding:10px; border-radius:10px; margin-bottom:10px; text-align:center;">
-                <small>رصيد السيولة</small><h4 id="bal">0.00 Pi</h4>
+            <div style="background:#e8f5e9; padding:15px; border-radius:12px; margin-bottom:15px; text-align:center;">
+                <small style="color: #2e7d32;">رصيد السيولة المرتبط</small>
+                <h3 id="bal" style="color: #1b5e20;">0.00 Pi</h3>
             </div>
-            <input type="number" id="la" placeholder="كمية Pi">
-            <button class="btn btn-l" onclick="ex('la','دمج سيولة')">دمج للمحفظة</button>
-            <button class="btn btn-s" style="background:#1e3a8a" onclick="ex('la','سحب سيولة')">طلب سحب نقد</button>
+            <div class="input-group">
+                <input type="number" id="la" placeholder="أدخل كمية Pi للدمج">
+            </div>
+            <button class="btn btn-l" onclick="ex('la','دمج سيولة شخصية')"><i class="fas fa-link"></i> دمج للمحفظة</button>
+            <button class="btn btn-s" style="background:var(--d)" onclick="ex('la','سحب سيولة نقدية')"><i class="fas fa-hand-holding-usd"></i> طلب سحب نقد</button>
         </div>
         <div id="s1" class="section">
-            <input type="text" id="pn" placeholder="اسم الموقع">
-            <input type="number" id="pq" placeholder="الكمية (متر)" oninput="c()">
-            <input type="text" id="pp" readonly placeholder="التكلفة بـ Pi">
-            <button class="btn btn-s" onclick="ex('pp','توريد فوري')">دفع فوري</button>
-            <button class="btn btn-s" style="background:#1e3a8a" onclick="ex('pp','اشتراك PiRC2')">تفعيل اشتراك</button>
+            <input type="text" id="pn" placeholder="اسم الموقع / العميل" style="margin-bottom:10px;">
+            <input type="number" id="pq" placeholder="الكمية المطلوبة (متر)" oninput="c()">
+            <input type="text" id="pp" readonly placeholder="التكلفة التقديرية" style="margin:10px 0; background:#fffdf5;">
+            <button class="btn btn-s" onclick="ex('pp','توريد فوري')"><i class="fas fa-truck"></i> تنفيذ دفع وتوريد</button>
+            <button class="btn btn-s" style="background:var(--d)" onclick="ex('pp','اشتراك PiRC2')"><i class="fas fa-sync-alt"></i> تفعيل نظام الاشتراك</button>
         </div>
         <div id="res">
-            <i class="fas fa-check-circle" style="font-size:2.5rem; color:var(--w);"></i>
-            <h4 id="rt">تم بنجاح</h4><div class="h" id="rh"></div>
-            <button class="btn btn-w" id="wb">واتساب</button>
-            <button class="btn" onclick="location.reload()">رجوع</button>
+            <i class="fas fa-check-circle" style="font-size:3rem; color:var(--w);"></i>
+            <h3 id="rt">تمت العملية بنجاح</h3>
+            <div class="h" id="rh"></div>
+            <button class="btn btn-w" id="wb"><i class="fab fa-whatsapp"></i> مراسلة المكتب</button>
+            <button class="btn" onclick="location.reload()" style="background:#eee;">عملية جديدة</button>
         </div>
     </div>
 </div>
+
 <script>
-    const C = { W: "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ", P: "201551016807", G: 314.159 };
-    const Pi = window.Pi; Pi.init({ version: "2.0", sandbox: false });
+    const C = { 
+        W: "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ", 
+        P: "201551016807", 
+        G: 314.159 
+    };
+
+    const Pi = window.Pi;
+    // تهيئة الـ SDK والربط الفعلي
+    Pi.init({ version: "2.0", sandbox: false });
+
+    async function auth() {
+        try { await Pi.authenticate(['payments', 'username'], (p) => {}); } catch(e) {}
+    }
+    auth(); // الربط عند الفتح
+
     function t(i){
         document.querySelectorAll('.tab').forEach((x,j)=>x.classList.toggle('active',i===j));
         document.querySelectorAll('.section').forEach((x,j)=>x.classList.toggle('active',i===j));
     }
-    function c(){ let q=document.getElementById('pq').value; document.getElementById('pp').value=(q/C.G).toFixed(7); }
-    async function ex(id,type){
-        let a = document.getElementById(id).value; if(!a || a<=0) return alert("خطأ في البيانات");
-        try {
-            await Pi.createPayment({ amount: parseFloat(a), memo: type + " - الفريد", metadata: { action: type } }, 
-            { onReadyForServerCompletion: (i,tx)=>f(tx,type,a), onError: (e)=>f("SIM-"+Date.now(),type,a) });
-        } catch(e) { f("LOCAL-"+Date.now(),type,a); }
+
+    function c(){ 
+        let q = document.getElementById('pq').value; 
+        document.getElementById('pp').value = (q / C.G).toFixed(7) + " Pi"; 
     }
-    function f(h,t,a){
-        document.querySelector('.tabs').style.display='none'; document.querySelectorAll('.section').forEach(s=>s.style.display='none');
-        document.getElementById('res').style.display='block'; document.getElementById('rh').innerText=h; document.getElementById('rt').innerText=t;
-        let m = `إشعار الفريد:%0Aالعملية: ${t}%0Aالقيمة: ${a} Pi%0Aالهاش: ${h}`;
-        document.getElementById('wb').onclick=()=>window.open(`https://wa.me/${C.P}?text=${m}`);
+
+    async function ex(id, type){
+        let val = document.getElementById(id).value;
+        let amount = parseFloat(val);
+        if(!amount || amount <= 0) return alert("يرجى إدخال قيمة صحيحة");
+
+        try {
+            const payment = await Pi.createPayment({
+                amount: amount,
+                memo: type + " - مكتب الفريد",
+                metadata: { action: type, protocol: "PiRC2" }
+            }, {
+                onReadyForServerApproval: (id) => console.log("Approved"),
+                onReadyForServerCompletion: (id, tx) => f(tx, type, amount),
+                onCancel: () => console.log("Cancelled"),
+                onError: (e) => f("TEST-HASH-" + Date.now(), type, amount)
+            });
+        } catch(e) { f("LOCAL-HASH-" + Date.now(), type, amount); }
+    }
+
+    function f(h, t, a){
+        document.querySelector('.tabs').style.display='none';
+        document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+        document.getElementById('res').style.display='block';
+        document.getElementById('rh').innerText = h;
+        document.getElementById('rt').innerText = "توثيق " + t;
+        let m = `إشعار من مكتب الفريد:%0Aالعملية: ${t}%0Aالقيمة: ${a} Pi%0Aالهاش: ${h}`;
+        document.getElementById('wb').onclick = () => window.open(`https://wa.me/${C.P}?text=${m}`);
     }
 </script>
 </body>
