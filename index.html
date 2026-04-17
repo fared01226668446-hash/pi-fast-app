@@ -30,7 +30,7 @@
     </div>
 </div>
 <script>
-    // عنوان محفظتك لاستقبال الأموال
+    // عنوان محفظتك الذي تم دمجه بناءً على طلبك
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const Pi = window.Pi;
     Pi.init({ version: "2.0", sandbox: false });
@@ -55,7 +55,7 @@
             await Pi.createPayment({
                 amount: amount,
                 memo: "توريد خرسانة - مكتب الفريد",
-                metadata: { recipient_wallet: MY_WALLET } // توجيه الدفع لمحفظتك
+                metadata: { wallet_address: MY_WALLET } // دمج العنوان في بيانات الدفع
             }, {
                 onReadyForServerApproval: (id) => console.log("Approved"),
                 onReadyForServerCompletion: (id, tx) => showRes(tx, amount),
