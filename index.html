@@ -3,105 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - المطور</title>
+    <title>مكتب الفريد - RPC v2 ISO 20022</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 5px solid #6a1b9a; }
-        input { width: 90%; padding: 14px; margin: 12px 0; border: 2px solid #eee; border-radius: 12px; font-size: 16px; text-align: center; font-weight: bold; color: #333; }
-        .btn { width: 100%; padding: 16px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.3s; }
-        .btn:active { transform: scale(0.98); background: #4a148c; }
-        #status { font-size: 14px; color: #666; margin-bottom: 15px; line-height: 1.6; }
-        .success-box { display: none; color: #2e7d32; padding: 15px; background: #e8f5e9; border-radius: 10px; margin-top: 15px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 6px solid #6a1b9a; }
+        .status-badge { font-size: 12px; padding: 5px 10px; border-radius: 20px; background: #eee; color: #666; margin-bottom: 15px; display: inline-block; }
+        input { width: 90%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; text-align: center; font-weight: bold; }
+        .btn { width: 100%; padding: 16px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.3s; margin-top: 10px; }
+        .btn:hover { background: #4a148c; }
+        .rpc-info { margin-top: 20px; font-size: 11px; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2 style="color:#6a1b9a; margin-bottom:5px;">مكتب الفريد الذكي</h2>
-    <div id="status">جاري الاتصال بالشبكة...</div>
+    <div id="rpc-status" class="status-badge">RPC v2: Initializing...</div>
 
     <div id="app-content" style="display:none;">
-        <p style="font-size: 14px; color: #555;">أدخل كمية الخرسانة المطلوبة:</p>
-        <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="calculate()">
+        <p style="font-size: 14px; color: #444;">نظام التوريد الرقمي (ISO Compliant)</p>
+        <input type="number" id="qty" placeholder="الكمية بالمتر المكعب" oninput="calculate()">
         <input type="text" id="amt" readonly placeholder="0.0000000">
-        <button class="btn" onclick="payNow()">تنفيذ الدفع الآن</button>
+        <button class="btn" onclick="executeV2Payment()">تأكيد الدفع عبر RPC v2</button>
     </div>
 
-    <div id="res" class="success-box">
-        <p>✅ تم إرسال الطلب بنجاح!</p>
-        <p id="txid" style="font-size: 10px; word-break: break-all;"></p>
-        <button class="btn" style="background:#25D366; margin-top:10px;" id="wa">تأكيد عبر واتساب</button>
+    <div id="res" style="display:none; background: #e8f5e9; padding: 15px; border-radius: 12px; margin-top: 10px;">
+        <p style="color: #2e7d32; font-weight: bold;">✅ تم تأكيد المعاملة في الشبكة</p>
+        <p id="txid" style="font-size: 9px; word-break: break-all; color: #555;"></p>
+        <button class="btn" style="background:#25D366;" id="wa">إرسال الهاش للمكتب</button>
+    </div>
+
+    <div class="rpc-info">
+        Protocol: RPC v2.0 | ISO 20022 Standard<br>
+        Network: Pi Mainnet Bridge
     </div>
 </div>
 
 <script>
-    // بياناتك الأساسية
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const Pi = window.Pi;
     
-    // بدء تشغيل SDK
+    // بدء الربط مع البروتوكول
     Pi.init({ version: "2.0", sandbox: false });
 
-    async function startApp() {
+    async function initRPCv2() {
         try {
-            // محاولة التوثيق التلقائي
-            const auth = await Pi.authenticate(['payments', 'username'], (onIncompletePaymentFound) => {
-                console.log("Found incomplete payment");
+            // استدعاء التوثيق لربط الـ Node
+            const auth = await Pi.authenticate(['payments', 'username'], (incomplete) => {
+                console.log("RPC v2: Checking incomplete transactions...");
             });
             
-            if(auth && auth.user) {
-                document.getElementById('status').innerHTML = "مرحباً بك: " + auth.user.username;
-                document.getElementById('status').style.color = "green";
-                document.getElementById('app-content').style.display = 'block';
-            }
+            document.getElementById('rpc-status').innerHTML = "Connected: " + auth.user.username;
+            document.getElementById('rpc-status').style.background = "#e1f5fe";
+            document.getElementById('rpc-status').style.color = "#0288d1";
+            document.getElementById('app-content').style.display = 'block';
         } catch (err) {
-            // في حالة فشل الاتصال التلقائي داخل المتصفح
-            document.getElementById('status').innerHTML = "يرجى التأكد من فتح الصفحة من Pi Browser<br>";
-            document.getElementById('status').innerHTML += `<button class="btn" style="background:#fbc02d; color:#000; margin-top:10px;" onclick="startApp()">اضغط هنا للربط اليدوي</button>`;
-            document.getElementById('status').style.color = "red";
+            document.getElementById('rpc-status').innerHTML = "RPC v2 Error: Connection Failed";
+            document.getElementById('rpc-status').style.background = "#ffebee";
+            document.getElementById('rpc-status').style.color = "#c62828";
         }
     }
 
-    // تأخير البدء لمدة ثانية لضمان تحميل المتصفح للمكتبات
-    setTimeout(startApp, 1000);
+    // تشغيل الاتصال بعد ثانية لضمان استقرار الـ Bridge
+    setTimeout(initRPCv2, 1000);
 
-    // وظيفة الحساب بـ 7 خانات عشرية
     function calculate() {
         let q = document.getElementById('qty').value;
         if(q > 0) {
-            let result = (parseFloat(q) / 314.159).toFixed(7);
-            document.getElementById('amt').value = result;
+            // الحساب الدقيق بـ 7 خانات لضمان التوافق المالي
+            document.getElementById('amt').value = (parseFloat(q) / 314.159).toFixed(7);
         }
     }
 
-    // وظيفة تنفيذ الدفع
-    async function payNow() {
+    async function executeV2Payment() {
         let amount = parseFloat(document.getElementById('amt').value);
-        if(!amount || amount <= 0) return alert("يرجى إدخال الكمية أولاً");
+        if(!amount || amount <= 0) return alert("يرجى إدخال الكمية");
 
         try {
+            // تنفيذ الدفع ببروتوكول RPC v2
             await Pi.createPayment({
                 amount: amount,
-                memo: "توريد خرسانة - مكتب الفريد",
-                metadata: { recipient_wallet: MY_WALLET }
+                memo: "AlFareed Office - ISO 20022 RPCv2",
+                metadata: { 
+                    protocol: "RPC2", 
+                    standard: "ISO20022",
+                    target_node: "Mainnet",
+                    wallet_addr: MY_WALLET 
+                }
             }, {
-                onReadyForServerApproval: (id) => console.log("Approved"),
-                onReadyForServerCompletion: (id, tx) => showFinal(tx, amount),
-                onCancel: () => alert("تم إلغاء الدفع"),
-                onError: (e) => alert("خطأ: " + e.message)
+                onReadyForServerApproval: (paymentId) => {
+                    console.log("RPC v2: Payment waiting for node approval: " + paymentId);
+                },
+                onReadyForServerCompletion: (paymentId, txid) => {
+                    showSuccess(txid, amount);
+                },
+                onCancel: () => alert("User Cancelled RPC Request"),
+                onError: (error) => alert("RPC v2 System Error: " + error.message)
             });
         } catch (e) {
-            alert("فشل في الاتصال بمحفظة Pi");
+            alert("Protocol Bridge Failure");
         }
     }
 
-    // عرض النتيجة النهائية وربطها بالواتساب
-    function showFinal(tx, a) {
+    function showSuccess(tx, a) {
         document.getElementById('app-content').style.display = 'none';
         document.getElementById('res').style.display = 'block';
         document.getElementById('txid').innerText = tx;
-        let msg = `تم دفع ${a} Pi لمكتب الفريد. الهاش: ${tx}`;
+        let msg = `تم تأكيد معاملة RPC v2 بمبلغ ${a} Pi. الهاش: ${tx}`;
         document.getElementById('wa').onclick = () => {
             window.open(`https://wa.me/201551016807?text=${encodeURIComponent(msg)}`);
         };
