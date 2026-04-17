@@ -11,7 +11,7 @@
         input { width: 90%; padding: 14px; margin: 12px 0; border: 2px solid #eee; border-radius: 12px; font-size: 16px; text-align: center; font-weight: bold; color: #333; }
         .btn { width: 100%; padding: 16px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.3s; }
         .btn:active { transform: scale(0.98); background: #4a148c; }
-        #status { font-size: 14px; color: #666; margin-bottom: 15px; }
+        #status { font-size: 14px; color: #666; margin-bottom: 15px; line-height: 1.6; }
         .success-box { display: none; color: #2e7d32; padding: 15px; background: #e8f5e9; border-radius: 10px; margin-top: 15px; }
     </style>
 </head>
@@ -36,25 +36,37 @@
 </div>
 
 <script>
+    // بياناتك الأساسية
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const Pi = window.Pi;
     
-    // تشغيل التوثيق بمجرد فتح الصفحة
+    // بدء تشغيل SDK
     Pi.init({ version: "2.0", sandbox: false });
-    
+
     async function startApp() {
         try {
-            const auth = await Pi.authenticate(['payments', 'username'], (onIncompletePaymentFound) => {});
-            document.getElementById('status').innerHTML = "مرحباً: " + auth.user.username;
-            document.getElementById('app-content').style.display = 'block';
+            // محاولة التوثيق التلقائي
+            const auth = await Pi.authenticate(['payments', 'username'], (onIncompletePaymentFound) => {
+                console.log("Found incomplete payment");
+            });
+            
+            if(auth && auth.user) {
+                document.getElementById('status').innerHTML = "مرحباً بك: " + auth.user.username;
+                document.getElementById('status').style.color = "green";
+                document.getElementById('app-content').style.display = 'block';
+            }
         } catch (err) {
-            document.getElementById('status').innerHTML = "يرجى فتح الصفحة من Pi Browser";
+            // في حالة فشل الاتصال التلقائي داخل المتصفح
+            document.getElementById('status').innerHTML = "يرجى التأكد من فتح الصفحة من Pi Browser<br>";
+            document.getElementById('status').innerHTML += `<button class="btn" style="background:#fbc02d; color:#000; margin-top:10px;" onclick="startApp()">اضغط هنا للربط اليدوي</button>`;
             document.getElementById('status').style.color = "red";
         }
     }
 
-    startApp();
+    // تأخير البدء لمدة ثانية لضمان تحميل المتصفح للمكتبات
+    setTimeout(startApp, 1000);
 
+    // وظيفة الحساب بـ 7 خانات عشرية
     function calculate() {
         let q = document.getElementById('qty').value;
         if(q > 0) {
@@ -63,15 +75,16 @@
         }
     }
 
+    // وظيفة تنفيذ الدفع
     async function payNow() {
         let amount = parseFloat(document.getElementById('amt').value);
         if(!amount || amount <= 0) return alert("يرجى إدخال الكمية أولاً");
 
         try {
-            const payment = await Pi.createPayment({
+            await Pi.createPayment({
                 amount: amount,
                 memo: "توريد خرسانة - مكتب الفريد",
-                metadata: { wallet: MY_WALLET }
+                metadata: { recipient_wallet: MY_WALLET }
             }, {
                 onReadyForServerApproval: (id) => console.log("Approved"),
                 onReadyForServerCompletion: (id, tx) => showFinal(tx, amount),
@@ -79,10 +92,11 @@
                 onError: (e) => alert("خطأ: " + e.message)
             });
         } catch (e) {
-            alert("حدث خطأ أثناء الاتصال بالمحفظة");
+            alert("فشل في الاتصال بمحفظة Pi");
         }
     }
 
+    // عرض النتيجة النهائية وربطها بالواتساب
     function showFinal(tx, a) {
         document.getElementById('app-content').style.display = 'none';
         document.getElementById('res').style.display = 'block';
