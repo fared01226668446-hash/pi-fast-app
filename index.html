@@ -12,10 +12,13 @@
         .card { width: 100%; max-width: 420px; background: #fff; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: linear-gradient(135deg, var(--p), #1e3a8a); color: #fff; padding: 20px; text-align: center; border-bottom: 4px solid var(--y); }
         .content { padding: 20px; }
-        input { width: 90%; padding: 12px; border: 2px solid #eee; border-radius: 12px; text-align: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
+        input { width: 90%; padding: 12px; border: 2px solid #eee; border-radius: 12px; text-align: center; margin-bottom: 15px; font-size: 16px; font-weight: bold; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
         .btn-pay { background: var(--p); color: #fff; }
+        .btn-pay:hover { background: #4a148c; }
         #res { display: none; text-align: center; padding: 20px; }
+        .h { font-size: 0.7rem; background: #f8f9fa; padding: 10px; border-radius: 8px; word-break: break-all; margin: 10px 0; border: 1px dashed #ccc; }
     </style>
 </head>
 <body>
@@ -26,10 +29,10 @@
     </div>
     <div class="content">
         <div id="form-area">
-            <label>الكمية المطلوبة (متر):</label>
+            <label>الكمية المطلوبة (متر مكعب):</label>
             <input type="number" id="pq" placeholder="أدخل الكمية" oninput="calculate()">
             
-            <label>التكلفة الإجمالية (Pi):</label>
+            <label>التكلفة الإجمالية بـ Pi:</label>
             <input type="text" id="pp" readonly placeholder="0.0000000">
             
             <button class="btn btn-pay" onclick="executePayment()">
@@ -39,29 +42,30 @@
 
         <div id="res">
             <i class="fas fa-check-circle" style="font-size:3rem; color:var(--w);"></i>
-            <h3 id="rt">تم التوثيق</h3>
-            <p id="rh" style="font-size: 0.7rem; word-break: break-all;"></p>
-            <button class="btn" style="background:var(--w); color:white;" id="wb">تأكيد عبر واتساب</button>
+            <h3 id="rt">تم توثيق الدفعة</h3>
+            <div class="h" id="rh"></div>
+            <button class="btn" style="background:var(--w); color:white;" id="wb">
+                <i class="fab fa-whatsapp"></i> تأكيد الطلب عبر واتساب
+            </button>
+            <button class="btn" onclick="location.reload()" style="background:#eee; margin-top:10px;">عملية جديدة</button>
         </div>
     </div>
 </div>
 
 <script>
-    // الثوابت: عنوان المحفظة والنسبة العالمية
     const CONFIG = {
         WALLET: "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ",
         PHONE: "201551016807",
-        RATE: 314.159 // النسبة المستخدمة للتحويل
+        RATE: 314.159 
     };
 
     const Pi = window.Pi;
     Pi.init({ version: "2.0", sandbox: false });
 
-    // وظيفة الحساب بـ 7 خانات دقيقة
+    // حساب دقيق لـ 7 أرقام عشرية
     function calculate() {
         let quantity = document.getElementById('pq').value;
-        if (quantity) {
-            // القسمة على النسبة مع تحديد 7 أرقام بعد العلامة
+        if (quantity && quantity > 0) {
             let total = (parseFloat(quantity) / CONFIG.RATE).toFixed(7);
             document.getElementById('pp').value = total;
         } else {
@@ -79,22 +83,22 @@
         }
 
         try {
-            // طلب الدفع الرسمي من تطبيق Pi
+            // تفعيل الربط مع محفظة Pi قبل الدفع
             await Pi.authenticate(['payments', 'username'], (p) => {});
             
             await Pi.createPayment({
                 amount: amount,
                 memo: "توريد خرسانة - مكتب الفريد",
-                metadata: { precision: "7-decimal" }
+                metadata: { action: "Supply", precision: "7-decimal" }
             }, {
-                onReadyForServerApproval: (id) => console.log("Approved"),
+                onReadyForServerApproval: (id) => console.log("Payment Approved"),
                 onReadyForServerCompletion: (id, tx) => showSuccess(tx, amount),
-                onCancel: () => console.log("Cancelled"),
+                onCancel: () => alert("تم إلغاء عملية الدفع"),
                 onError: (e) => showSuccess("TX-LOCAL-" + Date.now(), amount)
             });
         } catch (e) {
-            // فتح الواتساب كحل احتياطي في حالة عدم استجابة المحفظة
-            showSuccess("MANUAL-CHECK", amount);
+            // في حالة الاختبار خارج Pi Browser يتم التحويل للواتساب مباشرة
+            showSuccess("MANUAL-CHECK-" + Date.now(), amount);
         }
     }
 
@@ -103,9 +107,9 @@
         document.getElementById('res').style.display = 'block';
         document.getElementById('rh').innerText = hash;
         
-        let msg = `تم دفع مبلغ: ${amt} Pi لخدمات توريد مكتب الفريد. الهاش: ${hash}`;
+        let msg = `تم دفع مبلغ: ${amt} Pi لخدمات توريد مكتب الفريد.%0Aالهاش: ${hash}`;
         document.getElementById('wb').onclick = () => {
-            window.open(`https://wa.me/${CONFIG.PHONE}?text=${encodeURIComponent(msg)}`);
+            window.open(`https://wa.me/${CONFIG.PHONE}?text=${msg}`);
         };
     }
 </script>
