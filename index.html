@@ -3,70 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - RPC v2</title>
+    <title>مكتب الفريد - RPC v2 Final</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
         .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 6px solid #6a1b9a; }
-        input { width: 90%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; text-align: center; font-weight: bold; }
-        .btn { width: 100%; padding: 16px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; }
-        .rpc-status { font-size: 12px; color: #888; margin-bottom: 15px; }
+        h2 { color: #6a1b9a; margin-bottom: 5px; }
+        .rpc-status { font-size: 11px; color: #888; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        input { width: 90%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; text-align: center; font-weight: bold; -webkit-appearance: none; }
+        input:focus { border-color: #6a1b9a; outline: none; background: #f9f0ff; }
+        .btn { width: 100%; padding: 16px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 10px; }
+        .btn:active { transform: scale(0.98); background: #4a148c; }
+        #res { display: none; margin-top: 15px; background: #e8f5e9; padding: 15px; border-radius: 12px; color: #2e7d32; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:#6a1b9a;">مكتب الفريد الذكي</h2>
-    <div id="status" class="rpc-status">Protocol: RPC v2.0 | ISO 20022</div>
+    <h2>مكتب الفريد الذكي</h2>
+    <div id="status" class="rpc-status">Protocol: RPC v2.0 | ISO 20022 Compliant</div>
 
     <div id="app-content">
-        <input type="number" id="qty" placeholder="أدخل الكمية بالمتر" oninput="calculate()">
-        <input type="text" id="amt" readonly placeholder="0.0000000">
-        <button class="btn" onclick="payNow()">تأكيد الدفع (Mainnet)</button>
+        <p style="font-size: 14px; color: #555;">أدخل كمية الخرسانة المطلوبة:</p>
+        <input type="number" id="qty" placeholder="الكمية بالمتر المكعب" 
+               oninput="calculate()" 
+               onkeyup="calculate()" 
+               onfocus="this.placeholder = ''" 
+               onblur="this.placeholder = 'الكمية بالمتر المكعب'">
+        
+        <input type="text" id="amt" readonly placeholder="السعر بـ Pi" style="background: #fdfdfd; color: #6a1b9a;">
+        
+        <button class="btn" onclick="payNow()">تأكيد الدفع (Mainnet RPC)</button>
     </div>
 
-    <div id="res" style="display:none; margin-top:15px; color:green; font-weight:bold;">
-        ✅ تم الدفع بنجاح!
-        <p id="txid" style="font-size:10px; color:#555; word-break:break-all;"></p>
+    <div id="res">
+        <p>✅ تم تأكيد المعاملة بنجاح!</p>
+        <p id="txid" style="font-size: 9px; word-break: break-all; color: #333;"></p>
+        <button class="btn" style="background:#25D366;" id="wa">إرسال إيصال الدفع للمكتب</button>
     </div>
 </div>
 
 <script>
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const Pi = window.Pi;
+    
+    // تهيئة النظام
     Pi.init({ version: "2.0", sandbox: false });
 
-    // محاولة الربط في الخلفية بدون تعطيل الواجهة
-    Pi.authenticate(['payments', 'username'], (incomplete) => {}).catch(e => console.log("Waiting for Pi Browser..."));
+    // ربط صامت في الخلفية
+    Pi.authenticate(['payments', 'username'], (incomplete) => {
+        console.log("Checking RPC Node...");
+    }).catch(err => console.log("Waiting for Pi Browser Bridge..."));
 
+    // وظيفة الحساب الدقيق 
     function calculate() {
-        let q = document.getElementById('qty').value;
-        if(q > 0) {
-            document.getElementById('amt').value = (parseFloat(q) / 314.159).toFixed(7);
+        const qtyInput = document.getElementById('qty');
+        const amtInput = document.getElementById('amt');
+        let q = qtyInput.value;
+        
+        if (q && q > 0) {
+            // المعادلة: الكمية / 314.159 مع تقريب لـ 7 خانات
+            let result = (parseFloat(q) / 314.159).toFixed(7);
+            amtInput.value = result + " Pi";
+        } else {
+            amtInput.value = "";
         }
     }
 
+    // وظيفة تنفيذ الدفع عبر RPC v2
     async function payNow() {
-        let amount = parseFloat(document.getElementById('amt').value);
-        if(!amount) return alert("اكتب الكمية أولاً");
+        let amountStr = document.getElementById('amt').value.replace(" Pi", "");
+        let amount = parseFloat(amountStr);
+
+        if (!amount || amount <= 0) {
+            alert("يرجى إدخال كمية صحيحة أولاً");
+            return;
+        }
 
         try {
-            await Pi.createPayment({
+            const payment = await Pi.createPayment({
                 amount: amount,
-                memo: "AlFareed - RPC v2 Payment",
-                metadata: { protocol: "RPC2", wallet: MY_WALLET }
+                memo: "AlFareed Office - Smart Delivery RPCv2",
+                metadata: { 
+                    protocol: "RPC2", 
+                    iso: "20022",
+                    service: "Services",
+                    wallet: MY_WALLET 
+                }
             }, {
-                onReadyForServerApproval: (id) => console.log("Approved"),
-                onReadyForServerCompletion: (id, tx) => {
-                    document.getElementById('app-content').style.display = 'none';
-                    document.getElementById('res').style.display = 'block';
-                    document.getElementById('txid').innerText = tx;
-                },
-                onCancel: () => alert("تم الإلغاء"),
-                onError: (e) => alert("خطأ في الشبكة: " + e.message)
+                onReadyForServerApproval: (paymentId) => console.log("Node Approval Pending: " + paymentId),
+                onReadyForServerCompletion: (paymentId, txid) => showFinal(txid, amount),
+                onCancel: () => alert("تم إلغاء العملية من قبل المستخدم"),
+                onError: (error) => alert("خطأ في بروتوكول الشبكة: " + error.message)
             });
-        } catch (e) { alert("تأكد من فتح التطبيق داخل Pi Browser"); }
+        } catch (e) {
+            alert("يرجى التأكد من فتح التطبيق داخل Pi Browser");
+        }
+    }
+
+    function showFinal(tx, a) {
+        document.getElementById('app-content').style.display = 'none';
+        document.getElementById('res').style.display = 'block';
+        document.getElementById('txid').innerText = "Hash: " + tx;
+        
+        let msg = `تم دفع ${a} Pi لمكتب الفريد.\nالهاش: ${tx}`;
+        document.getElementById('wa').onclick = () => {
+            window.open(`https://wa.me/201551016807?text=${encodeURIComponent(msg)}`);
+        };
     }
 </script>
+
 </body>
 </html>
