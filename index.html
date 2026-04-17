@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - النظام المتكامل RPC2</title>
+    <title>مكتب الفريد - RPC2 Final Edition</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 10px; }
@@ -16,14 +16,14 @@
         .btn { width: 100%; padding: 15px; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; -webkit-tap-highlight-color: transparent; }
         .btn:active { transform: scale(0.98); opacity: 0.9; }
         #res { display: none; margin-top: 15px; background: #e8f5e9; padding: 15px; border-radius: 12px; color: #2e7d32; }
-        .status-bar { font-size: 11px; color: #888; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .status-bar { font-size: 11px; color: #d32f2f; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2 style="color:#6a1b9a; margin-bottom:5px;">مكتب الفريد الذكي</h2>
-    <div class="status-bar" id="status">Protocol: RPC v2.0 | ISO 20022 Standard</div>
+    <div class="status-bar" id="status">جاري الاتصال بـ Pi Browser...</div>
 
     <div id="main-ui">
         <div class="section-title service-bg">طلب توريد خرسانة (Services)</div>
@@ -32,7 +32,6 @@
         <button class="btn service-bg" onclick="payNow('Service')">تأكيد دفع الخدمة</button>
 
         <div class="section-title allowance-bg">الصرف الشهري المستحق (RPC2)</div>
-        <p style="font-size: 10px; color: #666; margin: 5px 0;">سحب مستحقاتك الشهرية من المحفظة</p>
         <input type="number" id="allowance_amount" placeholder="المبلغ المراد صرفه" inputmode="decimal">
         <button class="btn allowance-bg" onclick="payNow('Allowance')">سحب الصرف الشهري</button>
 
@@ -56,13 +55,19 @@
     const MY_PHONE = "201551016807";
     const Pi = window.Pi;
     
+    // الحل النهائي لمشكلة "تأكد من استخدام Pi Browser"
     window.onload = function() {
-        Pi.init({ version: "2.0", sandbox: false });
-        Pi.authenticate(['payments', 'username'], (incomplete) => {
-            document.getElementById('status').innerText = "RPC v2.0: Connected & Active";
-        }).catch(() => {
-            console.log("الرجاء الفتح من Pi Browser");
-        });
+        if (typeof Pi !== 'undefined') {
+            Pi.init({ version: "2.0", sandbox: false });
+            
+            // التوثيق الصامت فور التحميل لإثبات الهوية للمتصفح
+            Pi.authenticate(['payments', 'username'], (incomplete) => {
+                document.getElementById('status').innerText = "RPC v2.0: Connected & Active";
+                document.getElementById('status').style.color = "#2e7d32";
+            }).catch((err) => {
+                document.getElementById('status').innerText = "يرجى التحديث من داخل Pi Browser";
+            });
+        }
     };
 
     function calculate() {
@@ -79,7 +84,7 @@
         if(type === 'Service') {
             let val = document.getElementById('amt').value.replace(" Pi", "");
             amount = parseFloat(val);
-            memo = "طلب توريد خرسانة - مكتب الفريد";
+            memo = "توريد خرسانة - مكتب الفريد RPC2";
             category = "Service Request";
         } else if(type === 'Allowance') {
             amount = parseFloat(document.getElementById('allowance_amount').value);
@@ -87,7 +92,7 @@
             category = "Monthly Allowance Claim";
         } else {
             amount = parseFloat(document.getElementById('liq_qty').value);
-            memo = "دعم حوض السيولة للشبكة - ISO 20022";
+            memo = "دعم حوض السيولة - ISO 20022";
             category = "Liquidity Pool";
         }
 
@@ -102,10 +107,10 @@
                 onReadyForServerApproval: (id) => console.log("Approved"),
                 onReadyForServerCompletion: (id, tx) => showSuccess(tx, amount, category),
                 onCancel: () => console.log("Cancelled"),
-                onError: (e) => alert("خطأ: " + e.message)
+                onError: (e) => alert("فشل الاتصال: " + e.message)
             });
         } catch (e) {
-            alert("يرجى التأكد من استخدام متصفح Pi الرسمي.");
+            alert("خطأ: يرجى تحديث الصفحة والمحاولة مرة أخرى.");
         }
     }
 
@@ -114,7 +119,7 @@
         document.getElementById('res').style.display = 'block';
         document.getElementById('tx-info').innerText = "الهاش: " + tx;
         
-        let message = `مرحبا مكتب الفريد،\nتم تنفيذ عملية: ${cat}\nالمبلغ: ${a} Pi\nالهاش: ${tx}\nبروتوكول: RPC2`;
+        let message = `مرحبا مكتب الفريد،\nتمت عملية: ${cat}\nالمبلغ: ${a} Pi\nالهاش: ${tx}\nنظام: RPC2`;
         document.getElementById('wa-btn').onclick = () => {
             window.open(`https://wa.me/${MY_PHONE}?text=${encodeURIComponent(message)}`);
         };
