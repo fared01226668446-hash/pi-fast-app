@@ -3,77 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - الدفع المباشر</title>
+    <title>مكتب الفريد - المطور</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 8px; font-size: 16px; text-align: center; }
-        .btn { width: 100%; padding: 15px; background: #6a1b9a; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 10px; }
-        .btn-auth { background: #fbc02d; color: #000; margin-bottom: 10px; }
-        #res { display: none; color: green; margin-top: 20px; font-weight: bold; }
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 5px solid #6a1b9a; }
+        input { width: 90%; padding: 14px; margin: 12px 0; border: 2px solid #eee; border-radius: 12px; font-size: 16px; text-align: center; font-weight: bold; color: #333; }
+        .btn { width: 100%; padding: 16px; background: #6a1b9a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); background: #4a148c; }
+        #status { font-size: 14px; color: #666; margin-bottom: 15px; }
+        .success-box { display: none; color: #2e7d32; padding: 15px; background: #e8f5e9; border-radius: 10px; margin-top: 15px; }
     </style>
 </head>
 <body>
+
 <div class="card">
-    <h2 style="color:#6a1b9a;">مكتب الفريد الذكي</h2>
-    <button id="auth-btn" class="btn btn-auth" onclick="login()">1. ربط المحفظة للبدء</button>
-    <div id="payment-area" style="display:none;">
-        <input type="number" id="qty" placeholder="أدخل الكمية بالمتر" oninput="calc()">
+    <h2 style="color:#6a1b9a; margin-bottom:5px;">مكتب الفريد الذكي</h2>
+    <div id="status">جاري الاتصال بالشبكة...</div>
+
+    <div id="app-content" style="display:none;">
+        <p style="font-size: 14px; color: #555;">أدخل كمية الخرسانة المطلوبة:</p>
+        <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="calculate()">
         <input type="text" id="amt" readonly placeholder="0.0000000">
-        <button class="btn" onclick="startPay()">2. تنفيذ الدفع الآن</button>
+        <button class="btn" onclick="payNow()">تنفيذ الدفع الآن</button>
     </div>
-    <div id="res">
-        <p>✅ تم الدفع بنجاح!</p>
+
+    <div id="res" class="success-box">
+        <p>✅ تم إرسال الطلب بنجاح!</p>
         <p id="txid" style="font-size: 10px; word-break: break-all;"></p>
-        <button class="btn" style="background:#25D366;" id="wa-btn">مراسلة المكتب بالهاش</button>
+        <button class="btn" style="background:#25D366; margin-top:10px;" id="wa">تأكيد عبر واتساب</button>
     </div>
 </div>
+
 <script>
-    // عنوان محفظتك الذي تم دمجه بناءً على طلبك
     const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const Pi = window.Pi;
+    
+    // تشغيل التوثيق بمجرد فتح الصفحة
     Pi.init({ version: "2.0", sandbox: false });
-
-    async function login() {
+    
+    async function startApp() {
         try {
-            await Pi.authenticate(['payments', 'username'], (p) => {});
-            document.getElementById('auth-btn').style.display = 'none';
-            document.getElementById('payment-area').style.display = 'block';
-        } catch (err) { alert("افتح التطبيق من Pi Browser"); }
+            const auth = await Pi.authenticate(['payments', 'username'], (onIncompletePaymentFound) => {});
+            document.getElementById('status').innerHTML = "مرحباً: " + auth.user.username;
+            document.getElementById('app-content').style.display = 'block';
+        } catch (err) {
+            document.getElementById('status').innerHTML = "يرجى فتح الصفحة من Pi Browser";
+            document.getElementById('status').style.color = "red";
+        }
     }
 
-    function calc() {
+    startApp();
+
+    function calculate() {
         let q = document.getElementById('qty').value;
-        if(q > 0) document.getElementById('amt').value = (parseFloat(q) / 314.159).toFixed(7);
+        if(q > 0) {
+            let result = (parseFloat(q) / 314.159).toFixed(7);
+            document.getElementById('amt').value = result;
+        }
     }
 
-    async function startPay() {
+    async function payNow() {
         let amount = parseFloat(document.getElementById('amt').value);
-        if(!amount || amount <= 0) return alert("اكتب الكمية أولاً");
+        if(!amount || amount <= 0) return alert("يرجى إدخال الكمية أولاً");
+
         try {
-            await Pi.createPayment({
+            const payment = await Pi.createPayment({
                 amount: amount,
                 memo: "توريد خرسانة - مكتب الفريد",
-                metadata: { wallet_address: MY_WALLET } // دمج العنوان في بيانات الدفع
+                metadata: { wallet: MY_WALLET }
             }, {
                 onReadyForServerApproval: (id) => console.log("Approved"),
-                onReadyForServerCompletion: (id, tx) => showRes(tx, amount),
-                onCancel: () => alert("تم إلغاء العملية"),
+                onReadyForServerCompletion: (id, tx) => showFinal(tx, amount),
+                onCancel: () => alert("تم إلغاء الدفع"),
                 onError: (e) => alert("خطأ: " + e.message)
             });
-        } catch (err) { alert("فشل تنفيذ الدفع"); }
+        } catch (e) {
+            alert("حدث خطأ أثناء الاتصال بالمحفظة");
+        }
     }
 
-    function showRes(tx, a) {
-        document.getElementById('payment-area').style.display = 'none';
+    function showFinal(tx, a) {
+        document.getElementById('app-content').style.display = 'none';
         document.getElementById('res').style.display = 'block';
         document.getElementById('txid').innerText = tx;
         let msg = `تم دفع ${a} Pi لمكتب الفريد. الهاش: ${tx}`;
-        document.getElementById('wa-btn').onclick = () => {
+        document.getElementById('wa').onclick = () => {
             window.open(`https://wa.me/201551016807?text=${encodeURIComponent(msg)}`);
         };
     }
 </script>
+
 </body>
 </html>
