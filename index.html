@@ -3,125 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - RPC2 Final Edition</title>
+    <title>مكتب الفريد - ISO 20022 & RPC2</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 10px; }
-        .card { width: 100%; max-width: 450px; background: #fff; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 6px solid #6a1b9a; }
-        .section-title { font-size: 14px; font-weight: bold; color: #fff; margin: 15px 0 5px; padding: 10px; border-radius: 8px; }
-        .service-bg { background: #6a1b9a; }
-        .liquidity-bg { background: #007bff; }
-        .allowance-bg { background: #0288d1; }
-        input { width: 90%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
-        .btn { width: 100%; padding: 15px; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; -webkit-tap-highlight-color: transparent; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
-        #res { display: none; margin-top: 15px; background: #e8f5e9; padding: 15px; border-radius: 12px; color: #2e7d32; }
-        .status-bar { font-size: 11px; color: #d32f2f; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 10px; }
+        .card { width: 100%; max-width: 450px; background: #fff; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-top: 6px solid #4a148c; }
+        .status-bar { font-size: 12px; color: #d32f2f; margin-bottom: 20px; padding: 8px; background: #fff3e0; border-radius: 10px; font-weight: bold; }
+        .section-title { font-size: 14px; font-weight: bold; color: #fff; margin: 15px 0 5px; padding: 12px; border-radius: 10px; }
+        .service-bg { background: #4a148c; }
+        .allowance-bg { background: #0277bd; }
+        .liquidity-bg { background: #2e7d32; }
+        input { width: 90%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-size: 16px; text-align: center; }
+        .btn { width: 100%; padding: 15px; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; }
+        .btn:active { transform: scale(0.97); }
+        #res { display: none; margin-top: 20px; background: #f1f8e9; padding: 20px; border-radius: 15px; border: 1px solid #c5e1a5; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:#6a1b9a; margin-bottom:5px;">مكتب الفريد الذكي</h2>
-    <div class="status-bar" id="status">جاري الاتصال بـ Pi Browser...</div>
+    <h2 style="color:#4a148c; margin-bottom:5px;">مكتب الفريد الذكي</h2>
+    <p style="font-size: 10px; color: #777;">Standard: ISO 20022 | Protocol: v21.2 (Ready for 22)</p>
+    
+    <div class="status-bar" id="status">جاري فحص اتصال Pi Browser...</div>
 
     <div id="main-ui">
-        <div class="section-title service-bg">طلب توريد خرسانة (Services)</div>
-        <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="calculate()" inputmode="decimal">
+        <div class="section-title service-bg">طلب توريد خرسانة (Service)</div>
+        <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="calculate()">
         <input type="text" id="amt" readonly placeholder="السعر بـ Pi">
-        <button class="btn service-bg" onclick="payNow('Service')">تأكيد دفع الخدمة</button>
+        <button class="btn service-bg" onclick="handleAction('Service')">تأكيد الدفع الفوري</button>
 
         <div class="section-title allowance-bg">الصرف الشهري المستحق (RPC2)</div>
-        <input type="number" id="allowance_amount" placeholder="المبلغ المراد صرفه" inputmode="decimal">
-        <button class="btn allowance-bg" onclick="payNow('Allowance')">سحب الصرف الشهري</button>
-
-        <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
+        <p style="font-size: 10px; color: #666; margin-bottom: 5px;">سحب مستحقاتك الدورية من المحفظة</p>
+        <input type="number" id="allowance_val" placeholder="المبلغ" value="0.0124814">
+        <button class="btn allowance-bg" onclick="handleAction('Allowance')">سحب الصرف الشهري</button>
 
         <div class="section-title liquidity-bg">دعم حوض السيولة (Liquidity)</div>
-        <input type="number" id="liq_qty" placeholder="كمية السيولة المراد نقلها" inputmode="decimal">
-        <button class="btn liquidity-bg" onclick="payNow('Liquidity')">نقل إلى حوض السيولة</button>
+        <button class="btn liquidity-bg" onclick="handleAction('Liquidity')">نقل السيولة للشبكة</button>
     </div>
 
     <div id="res">
-        <p style="font-weight: bold;">✅ تمت العملية بنجاح!</p>
-        <p id="tx-info" style="font-size: 10px; color: #444; word-break: break-all;"></p>
-        <button id="wa-btn" class="btn" style="background: #25D366;">إرسال الهاش عبر واتساب</button>
-        <button class="btn" style="background: #666;" onclick="location.reload()">العودة للرئيسية</button>
+        <h3 style="color: #2e7d32;">✅ اكتملت المعاملة</h3>
+        <p id="tx-hash" style="font-size: 9px; word-break: break-all; color: #333; background: #fff; padding: 10px; border-radius: 8px;"></p>
+        <button id="wa-link" class="btn" style="background: #25D366;">إرسال الهاش للمكتب عبر واتساب</button>
+        <button class="btn" style="background: #9e9e9e;" onclick="location.reload()">رجوع</button>
     </div>
 </div>
 
 <script>
-    const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
-    const MY_PHONE = "201551016807";
-    const Pi = window.Pi;
+    const WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
+    const PHONE = "201551016807";
     
-    // الحل النهائي لمشكلة "تأكد من استخدام Pi Browser"
+    // الحل النهائي لرسالة "تأكد من استخدام Pi Browser"
     window.onload = function() {
-        if (typeof Pi !== 'undefined') {
-            Pi.init({ version: "2.0", sandbox: false });
-            
-            // التوثيق الصامت فور التحميل لإثبات الهوية للمتصفح
-            Pi.authenticate(['payments', 'username'], (incomplete) => {
-                document.getElementById('status').innerText = "RPC v2.0: Connected & Active";
-                document.getElementById('status').style.color = "#2e7d32";
-            }).catch((err) => {
-                document.getElementById('status').innerText = "يرجى التحديث من داخل Pi Browser";
-            });
-        }
+        let attempts = 0;
+        const initInterval = setInterval(() => {
+            if (typeof Pi !== 'undefined') {
+                clearInterval(initInterval);
+                Pi.init({ version: "2.0", sandbox: false });
+                
+                Pi.authenticate(['payments', 'username'], (auth) => {
+                    document.getElementById('status').innerText = "متصل بنجاح - نظام ISO 20022 نشط ✅";
+                    document.getElementById('status').style.backgroundColor = "#e8f5e9";
+                    document.getElementById('status').style.color = "#2e7d32";
+                }).catch(err => {
+                    console.log("محاولة ربط جديدة...");
+                });
+            }
+            attempts++;
+            if(attempts > 20) {
+                document.getElementById('status').innerText = "يرجى تحديث الصفحة من أعلى يمين المتصفح";
+                clearInterval(initInterval);
+            }
+        }, 800);
     };
 
     function calculate() {
         let q = document.getElementById('qty').value;
-        if(q > 0) {
-            let result = (parseFloat(q) / 314.159).toFixed(7);
-            document.getElementById('amt').value = result + " Pi";
+        if(q) {
+            let p = (parseFloat(q) / 314.159).toFixed(7);
+            document.getElementById('amt').value = p + " Pi";
         }
     }
 
-    async function payNow(type) {
-        let amount, memo, category;
-        
+    async function handleAction(type) {
+        let amount, memo;
         if(type === 'Service') {
-            let val = document.getElementById('amt').value.replace(" Pi", "");
-            amount = parseFloat(val);
-            memo = "توريد خرسانة - مكتب الفريد RPC2";
-            category = "Service Request";
+            amount = parseFloat(document.getElementById('amt').value);
+            memo = "طلب توريد خرسانة - مكتب الفريد الذكي";
         } else if(type === 'Allowance') {
-            amount = parseFloat(document.getElementById('allowance_amount').value);
-            memo = "سحب مخصصات صرف شهري - RPC2";
-            category = "Monthly Allowance Claim";
+            amount = parseFloat(document.getElementById('allowance_val').value);
+            memo = "صرف مخصصات شهرية - نظام RPC2";
         } else {
-            amount = parseFloat(document.getElementById('liq_qty').value);
-            memo = "دعم حوض السيولة - ISO 20022";
-            category = "Liquidity Pool";
+            amount = 0.001; // تجريبي لدعم السيولة
+            memo = "دعم حوض السيولة - معيار ISO 20022";
         }
 
-        if(!amount || amount <= 0) return alert("يرجى إدخال مبلغ صحيح");
+        if(!amount || amount <= 0) return alert("يرجى إدخال بيانات صحيحة");
 
         try {
             await Pi.createPayment({
                 amount: amount,
                 memo: memo,
-                metadata: { protocol: "RPC2", type: category, wallet: MY_WALLET }
+                metadata: { protocol: "RPC2", iso: "20022", target: "Al-Fareed Office" }
             }, {
                 onReadyForServerApproval: (id) => console.log("Approved"),
-                onReadyForServerCompletion: (id, tx) => showSuccess(tx, amount, category),
+                onReadyForServerCompletion: (id, tx) => finish(tx, amount, type),
                 onCancel: () => console.log("Cancelled"),
-                onError: (e) => alert("فشل الاتصال: " + e.message)
+                onError: (e) => alert("حدث خطأ في الشبكة")
             });
         } catch (e) {
-            alert("خطأ: يرجى تحديث الصفحة والمحاولة مرة أخرى.");
+            alert("فشل تنفيذ العملية");
         }
     }
 
-    function showSuccess(tx, a, cat) {
+    function finish(hash, a, t) {
         document.getElementById('main-ui').style.display = 'none';
         document.getElementById('res').style.display = 'block';
-        document.getElementById('tx-info').innerText = "الهاش: " + tx;
+        document.getElementById('tx-hash').innerText = "رقم المعاملة (Hash):\n" + hash;
         
-        let message = `مرحبا مكتب الفريد،\nتمت عملية: ${cat}\nالمبلغ: ${a} Pi\nالهاش: ${tx}\nنظام: RPC2`;
-        document.getElementById('wa-btn').onclick = () => {
-            window.open(`https://wa.me/${MY_PHONE}?text=${encodeURIComponent(message)}`);
+        let msg = `تم دفع ${a} Pi بنجاح\nالنوع: ${t}\nالهاش: ${hash}\nمكتب الفريد - RPC2`;
+        document.getElementById('wa-link').onclick = () => {
+            window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`);
         };
     }
 </script>
