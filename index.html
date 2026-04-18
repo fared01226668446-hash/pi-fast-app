@@ -12,8 +12,6 @@
         .container { padding: 20px; max-width: 500px; margin: auto; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); margin-bottom: 25px; border-right: 6px solid var(--primary); }
         .btn-order { background: var(--success); color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 19px; cursor: pointer; text-decoration: none; display: block; }
-        
-        /* القسم السري - مخفي */
         #payout-section { display: none; background: #fff4e5; border: 2px dashed var(--secondary); border-radius: 15px; padding: 20px; animation: slideDown 0.4s ease-out; }
         .status-box { background: #e1bee7; color: #4a148c; padding: 12px; border-radius: 8px; font-weight: bold; margin: 15px 0; font-size: 14px; line-height: 1.5; }
         .btn-execute { background: var(--secondary); color: white; border: none; padding: 18px; border-radius: 10px; width: 100%; font-size: 22px; font-weight: bold; cursor: pointer; }
@@ -46,19 +44,20 @@
 
 <script>
     const Pi = window.Pi;
+    // المحفظة المحدثة التي تنتهي بـ UVTZ
     const WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     let count = 0;
 
-    // 1. تهيئة الـ SDK مع الانتظار لضمان الربط
     window.onload = function() {
         const status = document.getElementById('status-display');
         if (typeof Pi !== 'undefined') {
-            Pi.init({ version: "2.0", sandbox: false });
+            // ملاحظة: تم تغيير sandbox إلى true ليتوافق مع وضع Testnet في لوحة المطورين
+            Pi.init({ version: "2.0", sandbox: true }); 
             status.innerHTML = "تم الربط بنجاح. النظام جاهز للأمر.";
         } else {
             setTimeout(() => {
                 if (typeof Pi !== 'undefined') {
-                    Pi.init({ version: "2.0", sandbox: false });
+                    Pi.init({ version: "2.0", sandbox: true });
                     status.innerHTML = "تم الاتصال بالشبكة بنجاح.";
                 } else {
                     status.innerHTML = "يرجى فتح الصفحة من داخل Pi Browser وتحديثها.";
@@ -67,7 +66,6 @@
         }
     };
 
-    // 2. تفعيل المنطقة السرية
     function handleSecretClick() {
         count++;
         if (count >= 5) {
@@ -77,20 +75,18 @@
         }
     }
 
-    // 3. تنفيذ عملية الدفع (RPC Logic)
     async function startSalaryPayout() {
         const status = document.getElementById('status-display');
         const btn = document.getElementById('exec-btn');
         
         try {
             status.innerHTML = "جاري التحقق من الهوية الشخصية...";
-            // إجبار المتصفح على التعرف على المستخدم
             await Pi.authenticate(['payments', 'username']);
             
-            status.innerHTML = "جاري توقيع المعاملة على المايننت...";
+            status.innerHTML = "جاري توقيع المعاملة...";
             btn.disabled = true;
 
-            const payment = await Pi.createPayment({
+            await Pi.createPayment({
                 amount: 150,
                 memo: "Salary Payout - Ahmed Farid",
                 metadata: { type: "weekly_salary" },
@@ -100,14 +96,13 @@
                 onReadyForServerCompletion: (id, txid) => {
                     status.innerHTML = "تم السحب بنجاح! مبروك يا أستاذ أحمد.";
                     btn.innerHTML = "تم التنفيذ ✅";
-                    // إشعار واتساب تلقائي
                     window.open(`https://wa.me/201551016807?text=${encodeURIComponent('تم استلام الراتب بنجاح رقم العملية: ' + txid)}`, '_blank');
                 },
                 onCancel: (id) => { status.innerHTML = "تم إلغاء السحب."; btn.disabled = false; },
-                onError: (err) => { status.innerHTML = "خطأ: تأكد من رصيد المحفظة والمايننت."; btn.disabled = false; }
+                onError: (err) => { status.innerHTML = "خطأ: تأكد من إعدادات المايننت."; btn.disabled = false; }
             });
         } catch (e) {
-            status.innerHTML = "تنبيه: يجب استخدام Pi Browser الأصلي.";
+            status.innerHTML = "تنبيه: فشل التحقق. تأكد من فتح التطبيق داخل Pi Browser.";
         }
     }
 </script>
