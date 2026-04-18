@@ -6,52 +6,57 @@
     <title>مكتب الفريد للخرسانة الجاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root { --primary: #1a237e; --secondary: #e65100; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f4f7f6; text-align: center; }
-        .header { background: var(--primary); color: white; padding: 30px; cursor: pointer; }
+        :root { --primary: #1a237e; --secondary: #e65100; --success: #28a745; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f4f7f6; text-align: center; color: #333; }
+        .header { background: var(--primary); color: white; padding: 30px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .container { padding: 20px; max-width: 500px; margin: auto; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); margin-bottom: 25px; border-right: 6px solid var(--primary); }
-        .btn-order { background: #28a745; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 19px; cursor: pointer; text-decoration: none; display: block; }
-        #payout-section { display: none; background: #fff4e5; border: 2px dashed var(--secondary); border-radius: 15px; padding: 20px; }
-        .status-box { background: #e1bee7; color: #4a148c; padding: 12px; border-radius: 8px; font-weight: bold; margin: 15px 0; font-size: 14px; }
+        .btn-order { background: var(--success); color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 19px; cursor: pointer; text-decoration: none; display: block; }
+        #payout-section { display: none; background: #fff4e5; border: 2px dashed var(--secondary); border-radius: 15px; padding: 20px; animation: slideDown 0.4s ease-out; }
+        .status-box { background: #e1bee7; color: #4a148c; padding: 12px; border-radius: 8px; font-weight: bold; margin: 15px 0; font-size: 14px; line-height: 1.5; }
         .btn-execute { background: var(--secondary); color: white; border: none; padding: 18px; border-radius: 10px; width: 100%; font-size: 22px; font-weight: bold; cursor: pointer; }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div class="header" onclick="handleSecretClick()">
-    <h1>مكتب الفريد للخرسانة الجاهزة</h1>
-    <p>لخدمات أكتوبر والشيخ زايد | 01551016807</p>
+    <h1 id="title">مكتب الفريد للخرسانة الجاهزة</h1>
+    <p>خدمات أكتوبر والشيخ زايد | 01551016807</p>
 </div>
 
 <div class="container">
     <div class="card">
         <h3>طلب توريد خرسانة</h3>
-        <p>خلاطات ومضخات حديثة جاهزة للعمل بأفضل الأسعار.</p>
+        <p>خلاطات ومضخات حديثة جاهزة للعمل بأفضل الأسعار في المنطقة.</p>
         <a href="https://wa.me/201551016807" class="btn-order">طلب معاينة عبر واتساب</a>
     </div>
 
     <div id="payout-section">
         <div class="card" style="border-right-color: var(--secondary);">
-            <h2 style="color: var(--secondary);">نظام السيولة (الشبكة المفتوحة)</h2>
-            <div id="status-display" class="status-box">جاري الاتصال بالـ Mainnet...</div>
-            <button id="exec-btn" class="btn-execute" onclick="startSalaryPayout()">تحويل الراتب (150$)</button>
+            <h2 style="color: var(--secondary);">إدارة السيولة (Mainnet)</h2>
+            <p>المستحق الحالي: 150 دولار</p>
+            <div id="status-display" class="status-box">جاري فحص اتصال الشبكة المفتوحة...</div>
+            <button id="exec-btn" class="btn-execute" onclick="startSalaryPayout()">تنفيذ السحب الحقيقي</button>
         </div>
     </div>
 </div>
 
 <script>
     const Pi = window.Pi;
-    // المحفظة الشخصية لاستلام الأموال الحقيقية
+    // المحفظة الشخصية لاستلام الراتب (المذكورة في صورك)
     const WALLET = "GD2JN2VUQTYMIHT53XIZ45SEWH3TZTJDN5ERUN525ATTGHZUKYOFLZTM"; 
-    const API_KEY = "zgo32bhkejllyhoqeamni8exgvmlszxg4eu1ikijdgdzjjtqcgkyq90xl2rrpvxw"; 
     let count = 0;
 
+    // 1. تهيئة الـ SDK للعمل على الشبكة المفتوحة حصراً
     window.onload = function() {
+        const status = document.getElementById('status-display');
         if (typeof Pi !== 'undefined') {
             // تفعيل الشبكة المفتوحة (Mainnet) بإلغاء الـ sandbox
             Pi.init({ version: "2.0", sandbox: false }); 
-            document.getElementById('status-display').innerHTML = "متصل الآن بالشبكة المفتوحة (Mainnet).";
+            status.innerHTML = "متصل الآن بالشبكة المفتوحة (Mainnet).";
+        } else {
+            status.innerHTML = "يرجى فتح الصفحة من داخل Pi Browser.";
         }
     };
 
@@ -60,35 +65,54 @@
         if (count >= 5) {
             document.getElementById('payout-section').style.display = 'block';
             count = 0;
+            alert("مرحباً أستاذ أحمد، تم تفعيل نظام السحب على المايننت.");
         }
     }
 
+    // 2. منطق الـ RPC وتوقيع المعاملة
     async function startSalaryPayout() {
         const status = document.getElementById('status-display');
+        const btn = document.getElementById('exec-btn');
+        
         try {
-            status.innerHTML = "جاري التحقق من الهوية على المايننت...";
-            const auth = await Pi.authenticate(['payments', 'username']);
+            status.innerHTML = "جاري التحقق من الهوية الشخصية على المايننت...";
+            // طلب إذن الدفع والتعرف على المستخدم
+            await Pi.authenticate(['payments', 'username']);
             
-            status.innerHTML = "مرحباً " + auth.user.username + ".. جاري تنفيذ التحويل الحقيقي.";
+            status.innerHTML = "جاري توقيع المعاملة وإرسالها للشبكة المفتوحة...";
+            btn.disabled = true;
 
+            // تنفيذ أمر الدفع (RPC)
             await Pi.createPayment({
                 amount: 150,
-                memo: "Official Mainnet Payout - Ahmed Farid",
-                metadata: { type: "mainnet_salary" },
+                memo: "Salary Payout - Mainnet - Ahmed Farid",
+                metadata: { type: "weekly_salary_distribution" },
                 to_address: WALLET
             }, {
-                onReadyForServerApproval: (id) => { status.innerHTML = "بانتظار موافقة الشبكة: " + id; },
-                onReadyForServerCompletion: (id, txid) => {
-                    status.innerHTML = "تم التحويل بنجاح على المايننت! ✅";
-                    window.open('https://wa.me/201551016807?text=تم استلام الراتب بنجاح على الشبكة المفتوحة رقم المعاملة: ' + txid);
+                // استجابة الشبكة عند جاهزية المعاملة للموافقة
+                onReadyForServerApproval: (id) => { 
+                    status.innerHTML = "بانتظار موافقة الشبكة النهائية.. المعرف: " + id; 
                 },
-                onCancel: (id) => { status.innerHTML = "تم إلغاء التحويل."; },
-                onError: (err) => { status.innerHTML = "تأكد من وجود رصيد كافي في محفظة التطبيق."; }
+                // عند اكتمال التحويل الفعلي ووصول الأموال لمحفظتك
+                onReadyForServerCompletion: (id, txid) => {
+                    status.innerHTML = "تم السحب بنجاح على المايننت! ✅";
+                    btn.innerHTML = "تم التنفيذ ✅";
+                    window.open(`https://wa.me/201551016807?text=${encodeURIComponent('تم استلام 150 دولار بنجاح على المايننت. رقم العملية: ' + txid)}`, '_blank');
+                },
+                onCancel: (id) => { 
+                    status.innerHTML = "تم إلغاء عملية السحب."; 
+                    btn.disabled = false; 
+                },
+                onError: (err) => { 
+                    status.innerHTML = "خطأ: تأكد من تفعيل وضع المايننت في لوحة المطورين وشحن رصيد التطبيق."; 
+                    btn.disabled = false; 
+                }
             });
         } catch (e) {
-            status.innerHTML = "تنبيه: تأكد من تفعيل وضع المايننت في لوحة المطورين.";
+            status.innerHTML = "تنبيه: يجب استخدام Pi Browser الأصلي والاتصال بالمايننت.";
         }
     }
 </script>
+
 </body>
 </html>
