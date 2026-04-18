@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد</title>
+    <title>مكتب الفريد - RPC2</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; text-align: center; padding: 20px; }
-        .card { background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        .stat { padding: 10px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
-        .wait { background: #fff3e0; color: #e65100; }
+        body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 15px; }
+        .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        .stat { padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; font-size: 13px; background: #fff3e0; color: #e65100; }
         .ready { background: #e8f5e9; color: #2e7d32; }
-        input, .btn { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        input, .btn { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
         .btn-p { background: #4a148c; color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-p:disabled { background: #ccc; }
         .btn-w { background: #25d366; color: white; text-decoration: none; display: block; }
@@ -20,41 +19,45 @@
 <body>
 <div class="card">
     <h2 style="color:#4a148c">مكتب الفريد الذكي</h2>
-    <div id="st" class="stat wait">جاري الربط مع المحفظة...</div>
+    <div id="st" class="stat">جاري محاولة الربط...</div>
     <input type="number" id="q" placeholder="الكمية (متر مكعب)" oninput="up()">
     <input type="text" id="a" readonly placeholder="السعر بـ Pi">
-    <button id="pb" class="btn btn-p" onclick="pay()" disabled>انتظر الربط...</button>
+    <button id="pb" class="btn btn-p" onclick="pay()" disabled>انتظر تفعيل الشبكة</button>
     <a href="https://wa.me/201551016807" class="btn btn-w">تواصل عبر واتساب</a>
 </div>
 <script>
     let ok = false;
+    const WALLET = "GD2JN2VUQTYMIHT53XIZ45SEWH3TZTJDN5ERUN525ATTGHZUKYOFLZTM";
+
     function init() {
         if (window.Pi) {
             Pi.init({ version: "2.0", sandbox: false });
-            Pi.authenticate(['payments', 'username'], (a) => {
+            Pi.authenticate(['payments'], (a) => {
                 ok = true;
-                document.getElementById('st').innerText = "متصل ✅";
-                document.getElementById('st').className = "stat ready";
-                document.getElementById('pb').innerText = "تأكيد الدفع";
+                const s = document.getElementById('st');
+                s.innerText = "متصل بالمحفظة ✅"; s.className = "stat ready";
+                document.getElementById('pb').innerText = "تأكيد الدفع الآن";
                 document.getElementById('pb').disabled = false;
             }).catch(() => setTimeout(init, 2000));
         } else setTimeout(init, 1000);
     }
+
     function up() {
         let v = document.getElementById('q').value;
         if(v) document.getElementById('a').value = (v / 314.159).toFixed(7) + " Pi";
     }
+
     async function pay() {
         let amt = parseFloat(document.getElementById('a').value);
-        if(!amt) return;
+        if(!amt || !ok) return;
         try {
             await Pi.createPayment({
-                amount: amt, memo: "طلب خرسانة - الفريد",
-                metadata: { type: "Service", v: "21.2" }
+                amount: amt, memo: "توريد خرسانة - RPC2",
+                metadata: { type: "Service", wallet: WALLET }
             }, {
                 onReadyForServerCompletion: (id, tx) => {
                     alert("نجحت العملية!");
-                    window.location.href = `https://wa.me/201551016807?text=تم الدفع: ${tx}`;
+                    window.location.href = `https://wa.me/201551016807?text=تم الدفع للمحفظة: ${tx}`;
                 },
                 onError: (e) => {}
             });
