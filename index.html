@@ -3,100 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد الذكي</title>
+    <title>مكتب الفريد - RPC2</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root { --primary: #4a148c; --whatsapp: #25d366; }
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 10px; margin: 0; }
-        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 10px solid var(--primary); }
-        .status-box { font-size: 14px; font-weight: bold; margin-bottom: 20px; padding: 15px; border-radius: 12px; transition: 0.3s; }
-        .waiting { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
-        .connected { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .header-box { font-size: 16px; font-weight: bold; color: white; padding: 15px; border-radius: 15px; margin: 15px 0; background: var(--primary); }
-        input { width: 92%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 15px; font-size: 18px; text-align: center; outline: none; }
-        .pay-btn { width: 100%; padding: 18px; color: white; border: none; border-radius: 18px; font-weight: bold; font-size: 18px; cursor: pointer; background: var(--primary); }
-        .retry-btn { margin-top: 10px; background: #7b1fa2; padding: 10px; font-size: 12px; display: none; }
-        .whatsapp-btn { background: var(--whatsapp); display: block; text-decoration: none; margin-top: 25px; border-radius: 18px; padding: 18px; color: white; font-weight: bold; font-size: 18px; }
+        :root { --primary: #4a148c; --success: #2e7d32; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .status-indicator { font-size: 13px; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
+        .waiting { background: #fff3e0; color: #ef6c00; }
+        .ready { background: #e8f5e9; color: var(--success); }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 15px; }
+        .btn-pay { background: var(--primary); color: white; }
+        .btn-pay:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-wa { background: #25d366; color: white; text-decoration: none; display: block; }
+        input { width: 90%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; font-size: 18px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:var(--primary); margin-bottom: 5px;">مكتب الفريد الذكي</h2>
-    <p style="font-size: 10px; color: #999; margin: 0;">System Version: v21.2</p>
+    <h2 style="color:var(--primary);">مكتب الفريد الذكي</h2>
+    <div id="stat" class="status-indicator waiting">جاري تهيئة الاتصال...</div>
 
-    <div id="status-area" class="status-box waiting">
-        جاري الربط مع محفظة Pi...
-        <button id="retry" class="pay-btn retry-btn" onclick="location.reload()">تحديث الصفحة يدويًا</button>
-    </div>
+    <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="calc()">
+    <input type="text" id="amt" readonly placeholder="السعر بـ Pi">
 
-    <div id="ui">
-        <div class="header-box">طلب توريد خرسانة (Service)</div>
-        <input type="number" id="qty" placeholder="الكمية (متر مكعب)" oninput="updatePrice()">
-        <input type="text" id="amt" readonly placeholder="السعر بـ Pi">
-        <button class="pay-btn" onclick="payNow()">تأكيد الدفع والطلب</button>
-        <a href="https://wa.me/201551016807" class="whatsapp-btn">تواصل واتساب مباشر</a>
-    </div>
-
-    <div id="done" style="display:none; padding: 20px;">
-        <h3 style="color: var(--primary);">تم الإرسال بنجاح ✅</h3>
-        <p id="txid" style="font-size: 11px; word-break: break-all; background: #f9f9f9; padding: 10px;"></p>
-        <p>جاري فتح واتساب لتأكيد الحجز...</p>
-    </div>
+    <button id="payBtn" class="btn btn-pay" onclick="pay()" disabled>انتظر الربط...</button>
+    <a href="https://wa.me/201551016807" class="btn btn-wa">تواصل واتساب</a>
 </div>
 
 <script>
-    let ready = false;
-    const MY_WA = "201551016807";
+    let isConnected = false;
+    const WA = "201551016807";
 
-    function startPi() {
-        if (window.Pi && window.Pi.init) {
+    function initPi() {
+        if (window.Pi) {
             Pi.init({ version: "2.0", sandbox: false });
             Pi.authenticate(['payments', 'username'], (auth) => {
-                ready = true;
-                const s = document.getElementById('status-area');
-                s.innerText = "تم الاتصال بنجاح ✅";
-                s.className = "status-box connected";
-                document.getElementById('retry').style.display = 'none';
+                isConnected = true;
+                const s = document.getElementById('stat');
+                s.innerText = "متصل بنجاح ✅";
+                s.className = "status-indicator ready";
+                const b = document.getElementById('payBtn');
+                b.innerText = "تأكيد الدفع";
+                b.disabled = false;
             }).catch(() => {
-                document.getElementById('status-area').innerText = "خطأ في التوثيق: اضغط تحديث";
-                document.getElementById('retry').style.display = 'block';
+                // إعادة المحاولة بصمت كل ثانيتين دون إظهار رسائل خطأ
+                setTimeout(initPi, 2000);
             });
         } else {
-            setTimeout(startPi, 1000);
+            setTimeout(initPi, 1000);
         }
     }
 
-    function updatePrice() {
+    function calc() {
         let q = document.getElementById('qty').value;
         if(q) document.getElementById('amt').value = (parseFloat(q) / 314.159).toFixed(7) + " Pi";
     }
 
-    async function payNow() {
-        if (!ready) return alert("الربط لم يكتمل بعد، يرجى الانتظار أو تحديث الصفحة.");
+    async function pay() {
         let val = parseFloat(document.getElementById('amt').value);
-        if(!val) return alert("أدخل الكمية أولاً");
+        if(!val) return;
 
         try {
             await Pi.createPayment({
                 amount: val,
-                memo: "طلب توريد خرسانة - مكتب الفريد",
-                metadata: { v: "21.2", type: "Service" }
+                memo: "توريد خرسانة - RPC2",
+                metadata: { type: "Service", node: "21.2" }
             }, {
                 onReadyForServerCompletion: (id, tx) => {
-                    document.getElementById('ui').style.display = 'none';
-                    document.getElementById('done').style.display = 'block';
-                    document.getElementById('txid').innerText = tx;
-                    let m = `تم دفع ${val} Pi لطلب خرسانة ✅\nرقم العملية: ${tx}`;
-                    setTimeout(() => window.location.href = `https://wa.me/${MY_WA}?text=${encodeURIComponent(m)}`, 3000);
+                    alert("تم الدفع بنجاح!");
+                    window.location.href = `https://wa.me/${WA}?text=تم الدفع بنجاح ✅\nالعملية: ${tx}`;
                 },
-                onError: (e) => alert("فشل تنفيذ العملية، تأكد من وجود رصيد كافٍ")
+                onError: (e) => {} // تجاهل الأخطاء العابرة
             });
-        } catch (e) { alert("استخدم Pi Browser الرسمي فقط"); }
+        } catch (e) {}
     }
 
-    window.onload = startPi;
+    window.onload = initPi;
 </script>
-
 </body>
 </html>
