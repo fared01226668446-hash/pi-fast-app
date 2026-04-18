@@ -8,8 +8,8 @@
     <style>
         body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 15px; }
         .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        .stat { padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; font-size: 13px; background: #fff3e0; color: #e65100; }
-        .ready { background: #e8f5e9; color: #2e7d32; }
+        .st { padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; font-size: 13px; background: #fff3e0; color: #e65100; }
+        .ok { background: #e8f5e9; color: #2e7d32; }
         input, .btn { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
         .btn-p { background: #4a148c; color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-p:disabled { background: #ccc; }
@@ -19,24 +19,24 @@
 <body>
 <div class="card">
     <h2 style="color:#4a148c">مكتب الفريد الذكي</h2>
-    <div id="st" class="stat">جاري محاولة الربط...</div>
+    <div id="st" class="st">جاري محاولة الربط بالمحفظة...</div>
     <input type="number" id="q" placeholder="الكمية (متر مكعب)" oninput="up()">
     <input type="text" id="a" readonly placeholder="السعر بـ Pi">
-    <button id="pb" class="btn btn-p" onclick="pay()" disabled>انتظر تفعيل الشبكة</button>
+    <button id="pb" class="btn btn-p" onclick="pay()" disabled>في انتظار الشبكة...</button>
     <a href="https://wa.me/201551016807" class="btn btn-w">تواصل عبر واتساب</a>
 </div>
 <script>
-    let ok = false;
-    const WALLET = "GD2JN2VUQTYMIHT53XIZ45SEWH3TZTJDN5ERUN525ATTGHZUKYOFLZTM";
+    let ready = false;
+    const MY_WAL = "GD2JN2VUQTYMIHT53XIZ45SEWH3TZTJDN5ERUN525ATTGHZUKYOFLZTM";
 
     function init() {
         if (window.Pi) {
             Pi.init({ version: "2.0", sandbox: false });
-            Pi.authenticate(['payments'], (a) => {
-                ok = true;
-                const s = document.getElementById('st');
-                s.innerText = "متصل بالمحفظة ✅"; s.className = "stat ready";
-                document.getElementById('pb').innerText = "تأكيد الدفع الآن";
+            Pi.authenticate(['payments'], (auth) => {
+                ready = true;
+                document.getElementById('st').innerText = "متصل بنجاح ✅";
+                document.getElementById('st').className = "st ok";
+                document.getElementById('pb').innerText = "إرسال إلى المحفظة";
                 document.getElementById('pb').disabled = false;
             }).catch(() => setTimeout(init, 2000));
         } else setTimeout(init, 1000);
@@ -49,11 +49,11 @@
 
     async function pay() {
         let amt = parseFloat(document.getElementById('a').value);
-        if(!amt || !ok) return;
+        if(!amt || !ready) return;
         try {
             await Pi.createPayment({
-                amount: amt, memo: "توريد خرسانة - RPC2",
-                metadata: { type: "Service", wallet: WALLET }
+                amount: amt, memo: "توريد خرسانة - الفريد",
+                metadata: { type: "Service", to: MY_WAL }
             }, {
                 onReadyForServerCompletion: (id, tx) => {
                     alert("نجحت العملية!");
