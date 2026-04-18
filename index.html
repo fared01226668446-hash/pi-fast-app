@@ -3,133 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد الذكي - الإصدار النهائي</title>
+    <title>مكتب الفريد الذكي - المراسلة مباشرة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root { --primary: #4a148c; --secondary: #0277bd; --success: #2e7d32; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 10px; margin: 0; }
-        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 25px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid var(--primary); }
-        .status-msg { font-size: 13px; padding: 12px; margin-bottom: 20px; border-radius: 12px; background: #fff3e0; color: #e65100; font-weight: bold; border: 1px solid #ffe0b2; }
-        .section-header { font-size: 15px; font-weight: bold; color: white; padding: 12px; border-radius: 10px; margin: 15px 0 10px; }
+        :root { --primary: #4a148c; --secondary: #0277bd; --whatsapp: #25d366; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 10px; margin: 0; }
+        .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 6px solid var(--primary); }
+        .status-box { font-size: 12px; padding: 10px; margin-bottom: 15px; border-radius: 10px; background: #fff3e0; color: #e65100; font-weight: bold; }
+        .header-box { font-size: 14px; font-weight: bold; color: white; padding: 10px; border-radius: 10px; margin: 10px 0; }
         .bg-purple { background: var(--primary); }
         .bg-blue { background: var(--secondary); }
-        .bg-green { background: var(--success); }
-        input { width: 90%; padding: 14px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-size: 16px; text-align: center; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); background: #fdfbff; }
-        .btn { width: 100%; padding: 16px; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .btn:active { transform: scale(0.98); }
-        .liquidity-box { margin-top: 25px; border-top: 1px dashed #ccc; padding-top: 15px; }
-        #res { display: none; padding: 30px 10px; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        input { width: 90%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; text-align: center; }
+        .btn { width: 100%; padding: 15px; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        /* تصميم زر الواتساب الجديد */
+        .whatsapp-btn { background: var(--whatsapp); display: flex; align-items: center; justify-content: center; text-decoration: none; margin-top: 20px; border-radius: 15px; padding: 12px; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
+        .whatsapp-btn img { width: 25px; margin-left: 10px; }
+        #res { display: none; padding: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2 style="color:var(--primary); margin: 0 0 5px;">مكتب الفريد الذكي</h2>
-    <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Protocol: v21.2 | ISO 20022 Ready</p>
-    
-    <div id="status" class="status-msg">جاري فحص الاتصال بمتصفح Pi...</div>
+    <div id="status" class="status-box">انتظار الربط بمتصفح Pi...</div>
 
     <div id="main-ui">
-        <div class="section-header bg-purple">طلب توريد خرسانة (Service)</div>
-        <input type="number" id="qty" placeholder="أدخل الكمية (متر مكعب)">
-        <input type="text" id="amt" readonly placeholder="السعر سيظهر هنا بـ Pi">
-        <button class="btn bg-purple" onclick="handlePayment('Service')">تأكيد دفع الخدمة</button>
+        <div class="header-box bg-purple">طلب توريد خرسانة (Service)</div>
+        <input type="number" id="qty" placeholder="أدخل الكمية (متر مكعب)" oninput="calc()">
+        <input type="text" id="amt" readonly placeholder="السعر بـ Pi">
+        <button class="btn bg-purple" onclick="pay('Service')">تأكيد دفع الخدمة</button>
 
-        <div class="section-header bg-blue">الصرف الشهري المستحق (RPC2)</div>
-        <input type="number" id="allowance_val" placeholder="أدخل مبلغ السحب المستحق">
-        <button class="btn bg-blue" onclick="handlePayment('Allowance')">سحب الصرف الشهري</button>
+        <div class="header-box bg-blue">الصرف الشهري المستحق (RPC2)</div>
+        <input type="number" id="allowance_val" placeholder="أدخل المبلغ">
+        <button class="btn bg-blue" onclick="pay('Allowance')">سحب الصرف الشهري</button>
 
-        <div class="liquidity-box">
-            <button class="btn bg-green" style="padding: 10px; font-size: 14px; width: 80%;" onclick="handlePayment('Liquidity')">دعم حوض السيولة (RPC v2)</button>
-        </div>
+        <a href="https://wa.me/201551016807" class="whatsapp-btn">
+             تواصل معنا عبر واتساب مباشرة
+        </a>
     </div>
 
     <div id="res">
-        <div style="font-size: 60px; margin-bottom: 10px;">✅</div>
-        <h3 style="color: var(--success);">تمت العملية بنجاح!</h3>
-        <p id="tx-hash" style="font-size: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px; word-break: break-all; color: #444;"></p>
-        <p style="font-size: 12px; color: #666;">جاري تحويلك للواتساب لتأكيد الحجز بمكتب الفريد...</p>
+        <div style="font-size: 50px;">✅</div>
+        <h3>تمت العملية بنجاح!</h3>
+        <p id="tx-hash" style="font-size: 10px; word-break: break-all;"></p>
     </div>
 </div>
 
 <script>
-    const WALLET_ADDR = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
-    const WHATSAPP_NUM = "201551016807";
+    const PHONE = "201551016807";
 
-    // حل مشكلة الربط وتجاوز رسائل الخطأ
     window.onload = function() {
-        let checkPi = setInterval(() => {
-            if (window.Pi) {
-                clearInterval(checkPi);
-                Pi.init({ version: "2.0", sandbox: false });
-                Pi.authenticate(['payments', 'username'], (auth) => {
-                    document.getElementById('status').innerText = "متصل بنجاح ✅ - نظام ISO 20022 نشط";
-                    document.getElementById('status').style.background = "#e8f5e9";
-                    document.getElementById('status').style.color = "#2e7d32";
-                    document.getElementById('status').style.borderColor = "#c8e6c9";
-                }).catch(e => {
-                    document.getElementById('status').innerText = "يرجى التحديث من داخل Pi Browser الرسمي";
-                });
-            }
-        }, 800);
-    };
-
-    // حساب السعر التلقائي
-    document.getElementById('qty').oninput = function() {
-        let val = this.value;
-        if(val) {
-            let result = (parseFloat(val) / 314.159).toFixed(7);
-            document.getElementById('amt').value = result + " Pi";
-        } else {
-            document.getElementById('amt').value = "";
+        if (window.Pi) {
+            Pi.init({ version: "2.0", sandbox: false });
+            Pi.authenticate(['payments', 'username'], (auth) => {
+                document.getElementById('status').innerText = "متصل بنجاح ✅";
+                document.getElementById('status').style.color = "#2e7d32";
+            });
         }
     };
 
-    async function handlePayment(type) {
-        let amount, memo;
-        if(type === 'Service') {
-            amount = parseFloat(document.getElementById('amt').value);
-            memo = "توريد خرسانة - مكتب الفريد الذكي";
-        } else if(type === 'Allowance') {
-            amount = parseFloat(document.getElementById('allowance_val').value);
-            memo = "صرف مخصصات شهرية RPC2";
-        } else {
-            amount = 0.001;
-            memo = "دعم السيولة العالمي ISO 20022";
-        }
+    function calc() {
+        let q = document.getElementById('qty').value;
+        if(q) document.getElementById('amt').value = (parseFloat(q) / 314.159).toFixed(7) + " Pi";
+    }
 
-        if(!amount || amount <= 0) return alert("يرجى إدخال البيانات المطلوبة أولاً");
+    async function pay(type) {
+        let amount = type === 'Service' ? parseFloat(document.getElementById('amt').value) : parseFloat(document.getElementById('allowance_val').value);
+        if(!amount || amount <= 0) return alert("يرجى إدخال البيانات");
 
         try {
-            document.getElementById('status').innerText = "جاري فتح المحفظة... انتظر";
             await Pi.createPayment({
                 amount: amount,
-                memo: memo,
-                metadata: { protocol: "RPC2", type: type }
+                memo: type === 'Service' ? "توريد خرسانة" : "صرف شهري",
+                metadata: { protocol: "RPC2" }
             }, {
-                onReadyForServerApproval: (id) => console.log("Approved"),
-                onReadyForServerCompletion: (id, txid) => finalize(txid, amount, type),
-                onCancel: () => { document.getElementById('status').innerText = "تم إلغاء المعاملة"; },
-                onError: (e) => { alert("فشل: تأكد من الرصيد والاتصال بالشبكة"); }
+                onReadyForServerCompletion: (id, txid) => {
+                    document.getElementById('main-ui').style.display = 'none';
+                    document.getElementById('res').style.display = 'block';
+                    document.getElementById('tx-hash').innerText = txid;
+                    // توجيه تلقائي للواتساب بعد النجاح
+                    window.location.href = `https://wa.me/${PHONE}?text=تم الدفع: ${txid}`;
+                }
             });
-        } catch (e) {
-            alert("خطأ تقني: افتح التطبيق من داخل Pi Browser");
-        }
-    }
-
-    function finalize(hash, amt, type) {
-        document.getElementById('main-ui').style.display = 'none';
-        document.getElementById('res').style.display = 'block';
-        document.getElementById('tx-hash').innerText = "الهاش: " + hash;
-        
-        let message = `تمت العملية بنجاح ✅\nالنوع: ${type}\nالمبلغ: ${amt} Pi\nالهاش: ${hash}\nمكتب الفريد الذكي`;
-        setTimeout(() => {
-            window.location.href = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(message)}`;
-        }, 2500);
+        } catch (e) { alert("خطأ في الربط"); }
     }
 </script>
-
 </body>
 </html>
