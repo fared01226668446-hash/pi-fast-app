@@ -1,70 +1,54 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - RPC V2</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 15px; }
-        .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        .st { padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; font-size: 13px; background: #fff3e0; color: #e65100; }
-        .ok { background: #e8f5e9; color: #2e7d32; }
-        input, .btn { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-        .btn-p { background: #4a148c; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-p:disabled { background: #ccc; }
-        .btn-w { background: #25d366; color: white; text-decoration: none; display: block; }
-    </style>
-</head>
-<body>
-<div class="card">
-    <h2 style="color:#4a148c">مكتب الفريد الذكي</h2>
-    <div id="st" class="st">جاري التحقق من المحفظة...</div>
-    <input type="number" id="q" placeholder="الكمية (متر مكعب)" oninput="up()">
-    <input type="text" id="a" readonly placeholder="السعر بـ Pi">
-    <button id="pb" class="btn btn-p" onclick="pay()" disabled>انتظر تفعيل الشبكة</button>
-    <a href="https://wa.me/201551016807" class="btn btn-w">تواصل عبر واتساب</a>
-</div>
-<script>
-    let ready = false;
-    // المحفظة المربوطة في حساب المطور الخاص بك
-    const APP_WAL = "GAENK4P7L2M7L2M7L2M7L2M7L2M7L2M7L2M7ID2YA"; 
+/**
+ * نظام السيولة الشخصي - الأستاذ أحمد فريد
+ * المستلم: GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ
+ * المبلغ: 150 دولار أسبوعياً
+ * الإشعارات: واتساب 00201551016807
+ */
 
-    function init() {
-        if (window.Pi) {
-            Pi.init({ version: "2.0", sandbox: false });
-            Pi.authenticate(['payments'], (auth) => {
-                ready = true;
-                const s = document.getElementById('st');
-                s.innerText = "المحفظة متصلة وجاهزة ✅"; s.className = "st ok";
-                document.getElementById('pb').innerText = "تأكيد الدفع (RPC V2)";
-                document.getElementById('pb').disabled = false;
-            }).catch(() => setTimeout(init, 1500));
-        } else setTimeout(init, 1000);
-    }
+const MY_PERSONAL_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
+const MY_WHATSAPP = "201551016807"; // رقمك الشخصي
+const PAYOUT_AMOUNT = 150;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-    function up() {
-        let v = document.getElementById('q').value;
-        if(v) document.getElementById('a').value = (v / 314.159).toFixed(7) + " Pi";
-    }
+async function runAhmedFaridSystem() {
+    console.log("جاري فحص استحقاق السيولة الأسبوعية...");
 
-    async function pay() {
-        let amt = parseFloat(document.getElementById('a').value);
-        if(!amt || !ready) return;
+    let lastPayout = localStorage.getItem('last_payout_ahmed');
+    let currentTime = Date.now();
+
+    // التحقق من مرور أسبوع
+    if (!lastPayout || (currentTime - lastPayout >= SEVEN_DAYS_MS)) {
         try {
-            await Pi.createPayment({
-                amount: amt, memo: "طلب خرسانة - RPC V2",
-                metadata: { wallet: APP_WAL, type: "Service" }
-            }, {
-                onReadyForServerCompletion: (id, tx) => {
-                    alert("تمت العملية بنجاح!");
-                    window.location.href = `https://wa.me/201551016807?text=تم الدفع: ${tx}`;
-                },
-                onError: (e) => { alert("يرجى المحاولة مرة أخرى من داخل متصفح Pi"); }
+            // 1. طلب تنفيذ الدفع من شبكة باي
+            const payment = await Pi.createPayment({
+                amount: PAYOUT_AMOUNT,
+                memo: "السيولة الأسبوعية الشخصية - أحمد فريد",
+                to_address: MY_PERSONAL_WALLET,
             });
-        } catch (e) {}
+
+            if (payment) {
+                // 2. تحديث تاريخ السحب في النظام
+                localStorage.setItem('last_payout_ahmed', currentTime);
+
+                // 3. إرسال إشعار الواتساب تلقائياً
+                sendWhatsAppNotification();
+            }
+        } catch (error) {
+            console.error("فشلت عملية التحويل، تأكد من الرصيد والاتصال بالشبكة.");
+        }
+    } else {
+        console.log("لم يحن موعد السحب بعد، النظام يعمل بدقة.");
     }
-    window.onload = init;
-</script>
-</body>
-</html>
+}
+
+function sendWhatsAppNotification() {
+    const message = `تم تحويل مبلغ ${PAYOUT_AMOUNT} دولار لمحفظتك بنجاح يا أستاذ أحمد.`;
+    const encodedMsg = encodeURIComponent(message);
+    const whatsappLink = `https://api.whatsapp.com/send?phone=${MY_WHATSAPP}&text=${encodedMsg}`;
+    
+    // فتح نافذة الواتساب لإرسال الإشعار
+    window.open(whatsappLink, '_blank');
+}
+
+// تشغيل النظام الشخصي فور فتح الصفحة
+runAhmedFaridSystem();
