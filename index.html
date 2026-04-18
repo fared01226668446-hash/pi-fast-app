@@ -6,106 +6,108 @@
     <title>مكتب الفريد للخدمات والخرسانة الجاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root { --primary-blue: #1a237e; --payout-orange: #e65100; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f4f4f4; color: #333; }
-        .header { background: var(--primary-blue); color: white; padding: 25px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .brand-title { cursor: pointer; user-select: none; font-size: 24px; margin: 0; }
+        :root { --primary: #1a237e; --secondary: #e65100; --success: #28a745; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f4f7f6; text-align: center; color: #333; }
+        .header { background: var(--primary); color: white; padding: 30px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .container { padding: 20px; max-width: 500px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-right: 5px solid var(--primary-blue); }
-        .btn-business { background: #28a745; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-size: 18px; cursor: pointer; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); margin-bottom: 25px; border-right: 6px solid var(--primary); }
+        .btn-order { background: var(--success); color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 19px; cursor: pointer; text-decoration: none; display: block; }
         
-        /* المنطقة السرية - مخفية تماماً برمجياً */
-        #secret-payout-module { display: none; margin-top: 20px; border: 2px dashed var(--payout-orange); border-radius: 12px; padding: 15px; background: #fff8e1; }
-        .status-display { background: #e1bee7; color: #4a148c; padding: 10px; border-radius: 8px; font-weight: bold; margin: 15px 0; font-size: 14px; }
-        .btn-payout-execute { background: var(--payout-orange); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-payout-execute:hover { background: #bf360c; }
+        /* القسم السري - مخفي */
+        #payout-section { display: none; background: #fff4e5; border: 2px dashed var(--secondary); border-radius: 15px; padding: 20px; animation: slideDown 0.4s ease-out; }
+        .status-box { background: #e1bee7; color: #4a148c; padding: 12px; border-radius: 8px; font-weight: bold; margin: 15px 0; font-size: 14px; line-height: 1.5; }
+        .btn-execute { background: var(--secondary); color: white; border: none; padding: 18px; border-radius: 10px; width: 100%; font-size: 22px; font-weight: bold; cursor: pointer; }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1 class="brand-title" onclick="unlockSecretModule()">مكتب الفريد للخرسانة الجاهزة</h1>
-    <p>لخدمات أكتوبر والشيخ زايد | 01551016807</p>
+<div class="header" onclick="handleSecretClick()">
+    <h1 id="title">مكتب الفريد للخرسانة الجاهزة</h1>
+    <p>خدمات أكتوبر والشيخ زايد | 01551016807</p>
 </div>
 
 <div class="container">
     <div class="card">
-        <h3>توريد خرسانة جاهزة</h3>
-        <p>نقدم أفضل أنواع الخرسانة بمواصفات قياسية مع توفير مضخات حديثة.</p>
-        <button class="btn-business" onclick="window.location.href='https://wa.me/201551016807'">طلب معاينة موقع</button>
+        <h3>طلب توريد خرسانة</h3>
+        <p>خلاطات ومضخات حديثة جاهزة للعمل بأفضل الأسعار في المنطقة.</p>
+        <a href="https://wa.me/201551016807" class="btn-order">طلب معاينة عبر واتساب</a>
     </div>
 
-    <div id="secret-payout-module">
-        <div class="card" style="border-right-color: var(--payout-orange);">
-            <h2 style="color: var(--payout-orange);">إدارة السيولة (أحمد فريد)</h2>
-            <p>المحفظة النشطة: <span style="font-size: 10px; color: #666;">UVTZ...</span></p>
-            <div id="rpc-status" class="status-display">جاري تهيئة الـ RPC والاتصال بالشبكة...</div>
-            <button id="main-payout-btn" class="btn-payout-execute" onclick="runPiPayoutProcess()">تنفيذ أمر السحب (150$)</button>
+    <div id="payout-section">
+        <div class="card" style="border-right-color: var(--secondary);">
+            <h2 style="color: var(--secondary);">نظام السيولة الشخصي</h2>
+            <p>المستحق: 150 دولار</p>
+            <div id="status-display" class="status-box">جاري فحص اتصال الـ SDK...</div>
+            <button id="exec-btn" class="btn-execute" onclick="startSalaryPayout()">تنفيذ أمر السحب</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. الإعدادات التقنية (RPC & SDK)
     const Pi = window.Pi;
-    Pi.init({ version: "2.0", sandbox: false }); // sandbox: false للشبكة الأساسية
+    const WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
+    let count = 0;
 
-    const TARGET_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
-    const AMOUNT = 150;
-    let clickTracker = 0;
+    // 1. تهيئة الـ SDK مع الانتظار لضمان الربط
+    window.onload = function() {
+        const status = document.getElementById('status-display');
+        if (typeof Pi !== 'undefined') {
+            Pi.init({ version: "2.0", sandbox: false });
+            status.innerHTML = "تم الربط بنجاح. النظام جاهز للأمر.";
+        } else {
+            setTimeout(() => {
+                if (typeof Pi !== 'undefined') {
+                    Pi.init({ version: "2.0", sandbox: false });
+                    status.innerHTML = "تم الاتصال بالشبكة بنجاح.";
+                } else {
+                    status.innerHTML = "يرجى فتح الصفحة من داخل Pi Browser وتحديثها.";
+                }
+            }, 1500);
+        }
+    };
 
-    // 2. دالة فك التشفير وفتح النظام
-    function unlockSecretModule() {
-        clickTracker++;
-        if (clickTracker >= 5) {
-            document.getElementById('secret-payout-module').style.display = 'block';
-            document.getElementById('rpc-status').innerHTML = "تم الربط بنجاح. النظام جاهز للأمر.";
-            clickTracker = 0;
-            alert("مرحباً أستاذ أحمد، نظام السيولة الشخصي مفعّل الآن.");
+    // 2. تفعيل المنطقة السرية
+    function handleSecretClick() {
+        count++;
+        if (count >= 5) {
+            document.getElementById('payout-section').style.display = 'block';
+            count = 0;
+            alert("مرحباً أستاذ أحمد، تم الدخول للوحة التحكم.");
         }
     }
 
-    // 3. معالجة أمر الدفع (Logic & RPC Execution)
-    async function runPiPayoutProcess() {
-        const statusBox = document.getElementById('rpc-status');
-        const payBtn = document.getElementById('main-payout-btn');
+    // 3. تنفيذ عملية الدفع (RPC Logic)
+    async function startSalaryPayout() {
+        const status = document.getElementById('status-display');
+        const btn = document.getElementById('exec-btn');
         
-        statusBox.innerHTML = "جاري توقيع المعاملة عبر الشبكة الأساسية...";
-        payBtn.disabled = true;
-
         try {
-            // تنفيذ الدفع المباشر
+            status.innerHTML = "جاري التحقق من الهوية الشخصية...";
+            // إجبار المتصفح على التعرف على المستخدم
+            await Pi.authenticate(['payments', 'username']);
+            
+            status.innerHTML = "جاري توقيع المعاملة على المايننت...";
+            btn.disabled = true;
+
             const payment = await Pi.createPayment({
-                amount: AMOUNT,
-                memo: "Salary Payout - AlFareed Office",
-                metadata: { internal_id: "AHMED_FARID_WEEKLY" },
-                to_address: TARGET_WALLET
+                amount: 150,
+                memo: "Salary Payout - Ahmed Farid",
+                metadata: { type: "weekly_salary" },
+                to_address: WALLET
             }, {
-                onReadyForServerApproval: (paymentId) => {
-                    statusBox.innerHTML = "في انتظار موافقة السيرفر (Payment ID: " + paymentId + ")";
+                onReadyForServerApproval: (id) => { status.innerHTML = "بانتظار موافقة الشبكة.. رقم المعاملة: " + id; },
+                onReadyForServerCompletion: (id, txid) => {
+                    status.innerHTML = "تم السحب بنجاح! مبروك يا أستاذ أحمد.";
+                    btn.innerHTML = "تم التنفيذ ✅";
+                    // إشعار واتساب تلقائي
+                    window.open(`https://wa.me/201551016807?text=${encodeURIComponent('تم استلام الراتب بنجاح رقم العملية: ' + txid)}`, '_blank');
                 },
-                onReadyForServerCompletion: (paymentId, txid) => {
-                    statusBox.innerHTML = "تم التحويل بنجاح! رقم العملية: " + txid.substring(0, 10) + "...";
-                    payBtn.innerHTML = "تم السحب بنجاح ✅";
-                    localStorage.setItem('last_payout_ts', Date.now());
-                    
-                    // إشعار فوري عبر واتساب
-                    setTimeout(() => {
-                        window.open('https://wa.me/201551016807?text=' + encodeURIComponent('تم تنفيذ سحب الـ 150 دولار لمحفظتك بنجاح يا أستاذ أحمد.'), '_blank');
-                    }, 2000);
-                },
-                onCancel: (paymentId) => {
-                    statusBox.innerHTML = "تم إلغاء الأمر من قبل المستخدم.";
-                    payBtn.disabled = false;
-                },
-                onError: (error, paymentId) => {
-                    statusBox.innerHTML = "خطأ في الاتصال بالـ RPC. تأكد من إعدادات المايننت.";
-                    payBtn.disabled = false;
-                }
+                onCancel: (id) => { status.innerHTML = "تم إلغاء السحب."; btn.disabled = false; },
+                onError: (err) => { status.innerHTML = "خطأ: تأكد من رصيد المحفظة والمايننت."; btn.disabled = false; }
             });
-        } catch (err) {
-            statusBox.innerHTML = "يجب تشغيل التطبيق من داخل Pi Browser حصراً.";
-            payBtn.disabled = false;
+        } catch (e) {
+            status.innerHTML = "تنبيه: يجب استخدام Pi Browser الأصلي.";
         }
     }
 </script>
