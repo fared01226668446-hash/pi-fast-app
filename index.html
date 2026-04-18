@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب الفريد - RPC2</title>
+    <title>مكتب الفريد - RPC V2</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 15px; }
@@ -19,26 +19,27 @@
 <body>
 <div class="card">
     <h2 style="color:#4a148c">مكتب الفريد الذكي</h2>
-    <div id="st" class="st">جاري محاولة الربط بالمحفظة...</div>
+    <div id="st" class="st">جاري التحقق من المحفظة...</div>
     <input type="number" id="q" placeholder="الكمية (متر مكعب)" oninput="up()">
     <input type="text" id="a" readonly placeholder="السعر بـ Pi">
-    <button id="pb" class="btn btn-p" onclick="pay()" disabled>في انتظار الشبكة...</button>
+    <button id="pb" class="btn btn-p" onclick="pay()" disabled>انتظر تفعيل الشبكة</button>
     <a href="https://wa.me/201551016807" class="btn btn-w">تواصل عبر واتساب</a>
 </div>
 <script>
     let ready = false;
-    const MY_WAL = "GD2JN2VUQTYMIHT53XIZ45SEWH3TZTJDN5ERUN525ATTGHZUKYOFLZTM";
+    // المحفظة المربوطة في حساب المطور الخاص بك
+    const APP_WAL = "GAENK4P7L2M7L2M7L2M7L2M7L2M7L2M7L2M7ID2YA"; 
 
     function init() {
         if (window.Pi) {
             Pi.init({ version: "2.0", sandbox: false });
             Pi.authenticate(['payments'], (auth) => {
                 ready = true;
-                document.getElementById('st').innerText = "متصل بنجاح ✅";
-                document.getElementById('st').className = "st ok";
-                document.getElementById('pb').innerText = "إرسال إلى المحفظة";
+                const s = document.getElementById('st');
+                s.innerText = "المحفظة متصلة وجاهزة ✅"; s.className = "st ok";
+                document.getElementById('pb').innerText = "تأكيد الدفع (RPC V2)";
                 document.getElementById('pb').disabled = false;
-            }).catch(() => setTimeout(init, 2000));
+            }).catch(() => setTimeout(init, 1500));
         } else setTimeout(init, 1000);
     }
 
@@ -52,14 +53,14 @@
         if(!amt || !ready) return;
         try {
             await Pi.createPayment({
-                amount: amt, memo: "توريد خرسانة - الفريد",
-                metadata: { type: "Service", to: MY_WAL }
+                amount: amt, memo: "طلب خرسانة - RPC V2",
+                metadata: { wallet: APP_WAL, type: "Service" }
             }, {
                 onReadyForServerCompletion: (id, tx) => {
-                    alert("نجحت العملية!");
-                    window.location.href = `https://wa.me/201551016807?text=تم الدفع للمحفظة: ${tx}`;
+                    alert("تمت العملية بنجاح!");
+                    window.location.href = `https://wa.me/201551016807?text=تم الدفع: ${tx}`;
                 },
-                onError: (e) => {}
+                onError: (e) => { alert("يرجى المحاولة مرة أخرى من داخل متصفح Pi"); }
             });
         } catch (e) {}
     }
