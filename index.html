@@ -3,82 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام السيولة الشخصي - أحمد فريد</title>
+    <title>مكتب الفريد للخدمات والخرسانة الجاهزة</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: inline-block; }
-        h1 { color: #333; }
-        p { color: #666; }
-        .status { font-weight: bold; color: #5a2d82; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f0f2f5; text-align: center; }
+        .header { background: #1a237e; color: white; padding: 25px; cursor: pointer; }
+        .container { padding: 20px; max-width: 500px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .btn-business { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 18px; margin-top: 10px; }
+        
+        /* المنطقة السرية - مخفية */
+        #secret-payout-zone { display: none; background: #fff3e0; border: 2px solid #ff9800; padding: 20px; border-radius: 12px; }
+        .status-box { font-weight: bold; color: #5a2d82; background: #e1bee7; padding: 10px; border-radius: 5px; margin-top: 10px; }
+        .btn-payout { background: #5a2d82; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 20px; }
     </style>
 </head>
 <body>
 
+<div class="header">
+    <h1 onclick="activateSecretZone()">مكتب الفريد للخرسانة الجاهزة</h1>
+    <p>خدمات 6 أكتوبر والشيخ زايد</p>
+</div>
+
 <div class="container">
-    <h1>نظام السيولة الأسبوعي</h1>
-    <p>الأستاذ: أحمد فريد</p>
-    <hr>
-    <div id="status" class="status">جاري فحص حالة النظام...</div>
+    <div class="card">
+        <h3>طلب توريد خرسانة</h3>
+        <p>خلاطات 10 متر ومضخات حديثة جاهزة للعمل.</p>
+        <button class="btn-business" onclick="window.location.href='https://wa.me/201551016807'">اطلب الآن عبر واتساب</button>
+    </div>
+
+    <div id="secret-payout-zone">
+        <div class="card">
+            <h2 style="color: #e65100;">إدارة الراتب الشخصي</h2>
+            <p>المبلغ المستحق: 150 دولار</p>
+            <div id="status" class="status-box">جاري فحص اتصال الـ SDK...</div>
+            <br>
+            <button id="payout-button" class="btn-payout" onclick="executePiPayment()" style="display:none;">تفيذ التحويل الآن</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    // إعدادات Pi SDK
+    // 1. تعريف الـ SDK وربطه بالتطبيق
     const Pi = window.Pi;
     Pi.init({ version: "2.0", sandbox: false });
 
-    // بيانات أحمد فريد الشخصية
-    const MY_PERSONAL_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
-    const MY_WHATSAPP = "201551016807"; 
+    const MY_WALLET = "GAG5UKX7Q3ESDD34MATRC3EQ2RSEMCZSLI6Y7K4XRF6NJGQBML25UVTZ";
     const PAYOUT_AMOUNT = 150;
-    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+    let clicks = 0;
 
-    async function runAhmedFaridSystem() {
-        const statusDiv = document.getElementById('status');
-        
-        let lastPayout = localStorage.getItem('last_payout_ahmed');
-        let currentTime = Date.now();
-
-        // التحقق من الوقت
-        if (!lastPayout || (currentTime - lastPayout >= SEVEN_DAYS_MS)) {
-            statusDiv.innerHTML = "حان موعد السحب.. جاري تحضير المعاملة.";
-            
-            try {
-                // تنفيذ الدفع
-                const payment = await Pi.createPayment({
-                    amount: PAYOUT_AMOUNT,
-                    memo: "السيولة الأسبوعية الشخصية - أحمد فريد",
-                    metadata: { type: "personal_payout" },
-                    to_address: MY_PERSONAL_WALLET,
-                }, {
-                    onReadyForServerApproval: (paymentId) => { console.log("Approval needed:", paymentId); },
-                    onReadyForServerCompletion: (paymentId, txid) => { console.log("Completed:", txid); },
-                    onCancel: (paymentId) => { statusDiv.innerHTML = "تم إلغاء العملية."; },
-                    onError: (error, paymentId) => { statusDiv.innerHTML = "خطأ في الشبكة."; }
-                });
-
-                if (payment) {
-                    localStorage.setItem('last_payout_ahmed', currentTime);
-                    statusDiv.innerHTML = "تم التحويل بنجاح! جاري فتح واتساب...";
-                    sendWhatsAppNotification();
-                }
-            } catch (error) {
-                statusDiv.innerHTML = "فشلت العملية. تأكد من فتح الرابط داخل Pi Browser.";
-            }
-        } else {
-            let nextDate = new Date(parseInt(lastPayout) + SEVEN_DAYS_MS);
-            statusDiv.innerHTML = "موعد السحب القادم: " + nextDate.toLocaleDateString('ar-EG');
+    // دالة تفعيل المنطقة السرية
+    function activateSecretZone() {
+        clicks++;
+        if (clicks >= 5) {
+            document.getElementById('secret-payout-zone').style.display = 'block';
+            checkEligibility();
+            clicks = 0;
         }
     }
 
-    function sendWhatsAppNotification() {
-        const message = `تم تحويل مبلغ ${PAYOUT_AMOUNT} دولار لمحفظتك بنجاح يا أستاذ أحمد.`;
-        const whatsappLink = `https://api.whatsapp.com/send?phone=${MY_WHATSAPP}&text=${encodeURIComponent(message)}`;
-        window.open(whatsappLink, '_blank');
+    // 2. التحقق من الوقت (منطق الراتب الأسبوعي)
+    function checkEligibility() {
+        const status = document.getElementById('status');
+        const btn = document.getElementById('payout-button');
+        let lastPay = localStorage.getItem('last_payout_ahmed');
+        let now = Date.now();
+
+        if (!lastPay || (now - lastPay >= WEEK_MS)) {
+            status.innerHTML = "النظام جاهز. يمكنك سحب راتبك الآن.";
+            btn.style.display = 'block';
+        } else {
+            let next = new Date(parseInt(lastPay) + WEEK_MS);
+            status.innerHTML = "الموعد القادم: " + next.toLocaleDateString('ar-EG');
+            btn.style.display = 'none';
+        }
     }
 
-    // بدء النظام
-    runAhmedFaridSystem();
+    // 3. تنفيذ الدفع الحقيقي عبر Pi SDK (ما يعادل Rcp2 في تنفيذ الأوامر)
+    async function executePiPayment() {
+        const status = document.getElementById('status');
+        status.innerHTML = "جاري الاتصال بالشبكة لتنفيذ السحب...";
+
+        try {
+            const payment = await Pi.createPayment({
+                amount: PAYOUT_AMOUNT,
+                memo: "الراتب الأسبوعي الشخصي - الأستاذ أحمد فريد",
+                metadata: { type: "weekly_salary" },
+                to_address: MY_WALLET,
+            }, {
+                onReadyForServerApproval: (id) => { console.log("Payment ID:", id); },
+                onReadyForServerCompletion: (id, txid) => {
+                    localStorage.setItem('last_payout_ahmed', Date.now());
+                    status.innerHTML = "تم السحب بنجاح! مبروك يا أستاذ أحمد.";
+                    notifyWhatsApp();
+                },
+                onCancel: (id) => { status.innerHTML = "تم إلغاء المعاملة من قبلك."; },
+                onError: (err, id) => { statusDiv.innerHTML = "خطأ: تأكد من الرصيد والشبكة."; }
+            });
+        } catch (error) {
+            status.innerHTML = "يجب فتح التطبيق من داخل Pi Browser لتفعيل الـ SDK.";
+        }
+    }
+
+    function notifyWhatsApp() {
+        const msg = `تم تحويل راتب الـ ${PAYOUT_AMOUNT} دولار لمحفظتك بنجاح.`;
+        window.open(`https://api.whatsapp.com/send?phone=201551016807&text=${encodeURIComponent(msg)}`, '_blank');
+    }
 </script>
 
 </body>
