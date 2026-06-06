@@ -24,27 +24,27 @@
 <body>
 
 <div class="header" onclick="handleSecretClick()">
-    <h1 id="title">مكتب الفريد للخدمات اللوجستية</h1>
+    <h1 id="title">مكتب الفريد للخرسانة الجاهزة</h1>
     <p>تطوير: أحمد فريد | 01551016807</p>
 </div>
 
 <div class="container">
     <div class="card">
         <h3>توريد خرسانة (طلب سريع)</h3>
-        <p>خدمة فورية لمنطقة أكتوبر والشيخ زايد.</p>
+        <p>خدمة فورية لمنطقة أكتوبر، القاهرة الجديدة، والشيخ زايد.</p>
         <a href="https://wa.me/201551016807" class="btn btn-order">معاينة عبر واتساب</a>
     </div>
 
     <div class="card" style="border-right-color: var(--info);">
         <h3>الاشتراكات الذكية (PiRC2)</h3>
-        <p>تعاقد دوري لتوريد الخرسانة مع تجديد تلقائي.</p>
-        <button class="btn btn-smart" onclick="invokeSmartContract('weekly')">تفعيل اشتراك أسبوعي</button>
+        <p>تعاقد دوري لتوريد الخرسانة مع تجديد تلقائي حسب احتياج مشروعك.</p>
+        <a href="https://wa.me/201551016807?text=%D8%A3%D8%B1%D9%81%D8%A8%20%D9%81%D9%8A%20%D8%B7%D9%84%D8%A8%20%D8%AA%D8%B9%D8%A7%D9%82%D8%AF%20%D8%AF%D9%88%D8%B1%D9%8A%20%D9%84%D9%84%D8%AE%D8%B1%D8%B3%D8%A7%D9%86%D8%A9%20%D8%A7%D9%84%D8%AC%D8%A7%D9%87%D8%B2%D8%A9" class="btn btn-smart">طلب تعاقد دوري</a>
     </div>
 
     <div id="admin-section">
         <div class="card" style="border-right-color: var(--secondary);">
             <h2 style="color: var(--secondary);">إدارة السيولة والمشتركين</h2>
-            <p>المستحق الأسبوعي الحالي: <strong>150 دولار</strong></p>
+            <p>إدارة طلبات المايننت والتعاقدات</p>
             <div id="status-display" class="status-box">في انتظار الأوامر...</div>
             <button id="exec-btn" class="btn btn-execute" onclick="startSalaryPayout()">تنفيذ السحب (Mainnet)</button>
             <button class="btn" style="background:#555; color:white;" onclick="processAllPayments()">تحصيل دفعات المشتركين</button>
@@ -80,24 +80,6 @@
         }
     }
 
-    // وظيفة العقود الذكية PiRC2 (للمشتركين)
-    async function invokeSmartContract(type) {
-        try {
-            updateStatus("جاري تهيئة العقد الذكي...");
-            const payment = await Pi.createPayment({
-                amount: type === 'weekly' ? 300 : 50,
-                memo: `PiRC2 Contract - ${type}`,
-                metadata: { service_id: type, auto_renew: true, version: "RC2" },
-                to_address: TARGET_WALLET
-            }, {
-                onReadyForServerCompletion: (id, txid) => {
-                    const aiMsg = `ذكاء اصطناعي: تم تفعيل عقد توريد ${type} بنجاح.\nالرقم المرجعي: ${txid}`;
-                    window.location.href = `https://wa.me/201551016807?text=${encodeURIComponent(aiMsg)}`;
-                }
-            });
-        } catch (e) { updateStatus("فشل في استدعاء العقد."); }
-    }
-
     // وظيفة سحب الراتب (إدارة المايننت)
     async function startSalaryPayout() {
         const btn = document.getElementById('exec-btn');
@@ -120,10 +102,9 @@
         } catch (e) { btn.disabled = false; }
     }
 
-    // محاكاة تحصيل الدفعات (كما في GitHub PiRC2)
     function processAllPayments() {
         updateStatus("جاري فحص المشتركين وتحصيل الدفعات المستحقة... (Batch Processing)");
-        setTimeout(() => updateStatus("تم فحص 12 مشترك بنجاح ✅"), 3000);
+        setTimeout(() => updateStatus("تم فحص المشتركين بنجاح ✅"), 3000);
     }
 </script>
 </body>
